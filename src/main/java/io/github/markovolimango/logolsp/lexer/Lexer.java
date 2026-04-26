@@ -33,9 +33,7 @@ public class Lexer {
         while ('0' <= s[i] && s[i] <= '9') i++;
         if (s[i] != '\0')
             return false;
-        if (s[i - 1] < '0' || '9' < s[i - 1])
-            return false;
-        return true;
+        return s[i - 1] >= '0' && '9' >= s[i - 1];
     }
 
     public List<Token> scan() {
@@ -54,7 +52,7 @@ public class Lexer {
                     addToken(c == '"' ? Token.Type.WORD : Token.Type.VARREF, start.offs() + 1);
                 }
                 case ';' -> {
-                    while (peek() != '\n' && peek() != '\r') consume();
+                    while (peek() != '\n' && peek() != '\r' && peek() != '\0') consume();
                     addToken(Token.Type.COMMENT, start.offs() + 1);
                 }
                 case '[' -> addToken(Token.Type.LBRACKET);
