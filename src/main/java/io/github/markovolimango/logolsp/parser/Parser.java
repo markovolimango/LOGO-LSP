@@ -1,8 +1,8 @@
 package io.github.markovolimango.logolsp.parser;
 
+import io.github.markovolimango.logolsp.lexer.Pos;
 import io.github.markovolimango.logolsp.lexer.Token;
 
-import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -147,17 +147,75 @@ public class Parser {
     );
 
     private final List<Token> tokens;
+    private final Map<String, Integer> userDefinedArity = new HashMap<>();
     private int pos;
-
-    private Map<String, Integer> userDefinedArity = new HashMap<>();
 
     public Parser(List<Token> tokens) {
         this.tokens = tokens;
         this.pos = 0;
     }
 
+    public Node parseProgram() {
+        var body = new ArrayList<Node>();
+        while (peek().type() != Token.Type.EOF) {
+            body.add(parseExpr());
+        }
+        return new Node.Program(body, body.getFirst().start(), body.getLast().end());
+    }
+
+    public Node parseMakeStmt() {
+        Token keyword = consume();
+        switch (keyword.type()) {
+            case Token.Type.MAKE, Token.Type.LOCALMAKE -> {
+                Node name = parseExpr();
+                Node value = parseExpr();
+                return new Node.MakeStmt(name, value, keyword.start(), value.end());
+            }
+            case Token.Type.NAME -> {
+                Node value = parseExpr();
+                Node name = parseExpr();
+                return new Node.MakeStmt(name, value, keyword.start(), value.end());
+            }
+            default -> throw parseError("Not a make statement");
+        }
+    }
+
+    public Node parseOutputStmt() {
+        Token keyword = expect(Token.Type.OUTPUT);
+        var value = parseExpr();
+        return new Node.OutputStmt(value, keyword.start(), value.end());
+    }
+
+    public Node parseProcDef() {
+        Token keyword = consume();
+        Token name;
+        List<Node> params = new ArrayList<>();
+        List<Node> body = new ArrayList<>();
+        Pos end;
+        if (keyword.type() == Token.Type.TO) {
+            name = expect(Token.Type.PROC);
+            while (peek().type() == Token.Type.VARREF)
+                params.add(parseExpr());
+            userDefinedArity.put(name.text(), params.size());
+            while (peek().type() != Token.Type.END && peek().type() != Token.Type.EOF)
+                body.add(parseExpr());
+            end = expect(Token.Type.END).end();
+        } else if (keyword.type() == Token.Type.DEFINE) {
+            name = expect(Token.Type.WORD);
+            var block = (Node.Block) parseBlock();
+            if (block.body().size() != 2) throw parseError("no");
+            end = block.end();
+            params = ((Node.Block) block.body().getFirst()).body();
+            body = ((Node.Block) block.body().getLast()).body();
+            userDefinedArity.put(name.text(), params.size());
+        } else {
+            throw parseError("invalid proc def");
+        }
+        return new Node.ProcDef(name, params, body, keyword.start(), end);
+    }
+
     public Node parseProcCall() {
-        Token name = expect(Token.Type.PROC);
+        Token name = consume();
         Integer arity = getProcArity(name.text());
         if (arity == null)
             throw parseError("Undefined procedure");
@@ -165,6 +223,16 @@ public class Parser {
         while (arity-- > 0)
             args.add(parseExpr());
         return new Node.ProcCall(name, args, name.start(), args.isEmpty() ? name.end() : args.getLast().end());
+    }
+
+    public Node parseBlock() {
+        Token lbracket = expect(Token.Type.LBRACKET);
+        var body = new ArrayList<Node>();
+        while (peek().type() != Token.Type.RBRACKET && peek().type() != Token.Type.EOF) {
+            body.add(parseExpr());
+        }
+        Token rbracket = expect(Token.Type.RBRACKET);
+        return new Node.Block(body, lbracket.start(), rbracket.end());
     }
 
     public Node parseExpr() {
@@ -217,6 +285,18 @@ public class Parser {
             }
             case PROC -> {
                 return parseProcCall();
+            }
+            case LBRACKET -> {
+                return parseBlock();
+            }
+            case MAKE, LOCALMAKE, NAME -> {
+                return parseMakeStmt();
+            }
+            case OUTPUT -> {
+                return parseOutputStmt();
+            }
+            case TO, DEFINE -> {
+                return parseProcDef();
             }
             default -> throw parseError("Unexpected token: " + t.text() + " (" + t.type() + ")");
         }

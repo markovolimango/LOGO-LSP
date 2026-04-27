@@ -19,10 +19,13 @@ public sealed interface Node {
     record Word(Token value, Pos start, Pos end) implements Node {
     }
 
+    record Block(List<Node> body, Pos start, Pos end) implements Node {
+    }
+
     record VarRef(Token name, Pos start, Pos end) implements Node {
     }
 
-    record ProcDef(Token name, List<Token> params, List<Node> body, Pos start, Pos end) implements Node {
+    record ProcDef(Token name, List<Node> params, List<Node> body, Pos start, Pos end) implements Node {
     }
 
     record ProcCall(Token name, List<Node> args, Pos start, Pos end) implements Node {
