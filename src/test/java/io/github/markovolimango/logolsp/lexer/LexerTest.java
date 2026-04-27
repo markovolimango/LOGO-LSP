@@ -26,8 +26,8 @@ class LexerTest {
 
     @Test
     void position_nextCol_incrementsOffsAndCol() {
-        Position p = new Position(5, 2, 3);
-        Position next = p.nextCol();
+        Pos p = new Pos(5, 2, 3);
+        Pos next = p.nextCol();
         assertEquals(6, next.offs());
         assertEquals(2, next.line());
         assertEquals(4, next.col());
@@ -35,8 +35,8 @@ class LexerTest {
 
     @Test
     void position_nextLine_incrementsLineResetsCol() {
-        Position p = new Position(5, 2, 7);
-        Position next = p.nextLine();
+        Pos p = new Pos(5, 2, 7);
+        Pos next = p.nextLine();
         assertEquals(5, next.offs());
         assertEquals(3, next.line());
         assertEquals(0, next.col());
@@ -373,5 +373,78 @@ class LexerTest {
     @Test
     void sequence_emptySource() {
         assertTrue(lex("").isEmpty());
+    }
+
+    // -------------------------------------------------------------------------
+    // Delimiter and Operator Seperation (No Spaces)
+    // -------------------------------------------------------------------------
+
+    @Test
+    void varref_stopsAtOperator() {
+        // :a+ should be VARREF(a) and OPERATOR(+)
+        List<Token> tokens = lex(":a+");
+        assertEquals(2, tokens.size());
+
+        assertEquals(Token.Type.VARREF, tokens.get(0).type());
+        assertEquals("a", tokens.get(0).text());
+
+        assertEquals(Token.Type.OPERATOR, tokens.get(1).type());
+        assertEquals("+", tokens.get(1).text());
+    }
+
+    @Test
+    void varref_stopsAtParenthesis() {
+        // (:a) should be LPAREN, VARREF(a), RPAREN
+        List<Token> tokens = lex("(:a)");
+        assertEquals(3, tokens.size());
+
+        assertEquals(Token.Type.LPAREN, tokens.get(0).type());
+
+        assertEquals(Token.Type.VARREF, tokens.get(1).type());
+        assertEquals("a", tokens.get(1).text());
+
+        assertEquals(Token.Type.RPAREN, tokens.get(2).type());
+    }
+
+    @Test
+    void complex_expression_no_spaces() {
+        // (:a+:b)*(:c+:d)
+        List<Token> tokens = lex("(:a+:b)*(:c+:d)");
+
+        // Expected sequence of types:
+        // ( :a + :b ) * ( :c + :d )
+        Token.Type[] expectedTypes = {
+                Token.Type.LPAREN, Token.Type.VARREF, Token.Type.OPERATOR,
+                Token.Type.VARREF, Token.Type.RPAREN, Token.Type.OPERATOR,
+                Token.Type.LPAREN, Token.Type.VARREF, Token.Type.OPERATOR,
+                Token.Type.VARREF, Token.Type.RPAREN
+        };
+
+        assertEquals(expectedTypes.length, tokens.size(), "Token count mismatch");
+        for (int i = 0; i < expectedTypes.length; i++) {
+            assertEquals(expectedTypes[i], tokens.get(i).type(), "Mismatch at index " + i);
+        }
+
+        assertEquals("d", tokens.get(9).text(), "Variable 'd' should not include the closing parenthesis");
+    }
+
+    @Test
+    void word_doesntStopsAtOperator() {
+        // "foo+bar should be WORD(foo) and OPERATOR(+) and PROC(bar)
+        List<Token> tokens = lex("\"foo+bar");
+        assertEquals(1, tokens.size());
+        assertEquals("foo+bar", tokens.getFirst().text());
+    }
+
+    @Test
+    void varref_with_multiple_operators() {
+        // :x*:y/:z
+        List<Token> tokens = lex(":x*:y/:z");
+        assertEquals(5, tokens.size());
+        assertEquals("x", tokens.get(0).text());
+        assertEquals("*", tokens.get(1).text());
+        assertEquals("y", tokens.get(2).text());
+        assertEquals("/", tokens.get(3).text());
+        assertEquals("z", tokens.get(4).text());
     }
 }

@@ -6,19 +6,19 @@ import java.util.List;
 public class Lexer {
     private final String source;
     private final ArrayList<Token> tokens = new ArrayList<>();
-    private Position curr = new Position(0, 0, 0);
-    private Position start;
+    private Pos curr = new Pos(0, 0, 0);
+    private Pos start;
 
     public Lexer(String source) {
         this.source = source + "\0\0";
     }
 
     static private boolean isWordChar(char c) {
-        return "\"[] \n\r\t;\0".indexOf(c) == -1;
+        return "\"[]() \t\n\r;\0".indexOf(c) == -1;
     }
 
     private static boolean isDelimiter(char c) {
-        return "\"[]() \t\n\r\0".indexOf(c) != -1;
+        return "\"[]() \t\n\r\0+-*/%<>=".indexOf(c) != -1;
     }
 
     private static boolean isNumber(String string) {
@@ -47,9 +47,13 @@ public class Lexer {
                 case '\r' -> {
                     if (peek() != '\n') curr = curr.nextLine();
                 }
-                case '"', ':' -> {
+                case '"' -> {
                     while (isWordChar(peek())) consume();
-                    addToken(c == '"' ? Token.Type.WORD : Token.Type.VARREF, start.offs() + 1);
+                    addToken(Token.Type.WORD, start.offs() + 1);
+                }
+                case ':' -> {
+                    while (!isDelimiter(peek())) consume();
+                    addToken(Token.Type.VARREF, start.offs() + 1);
                 }
                 case ';' -> {
                     while (peek() != '\n' && peek() != '\r' && peek() != '\0') consume();

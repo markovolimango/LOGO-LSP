@@ -1,12 +1,10 @@
 package io.github.markovolimango.logolsp.lexer;
 
-import java.util.Map;
-
 public record Token(
         Type type,
         String text,
-        Position start,
-        Position end    // LSP ranges need both ends
+        Pos start,
+        Pos end    // LSP ranges need both ends
 ) {
     public enum Type {
         NUMBER,                 // 42, 3.14 (negative numbers stored as operator and positive number tokens)
@@ -27,7 +25,9 @@ public record Token(
 
         COMMENT,                // ;comment (stored without ;)
 
-        ERROR                   // unknown tokens, for error recovery
+        ERROR,                  // unknown tokens, for error recovery
+
+        EOF,                    // sentinel for the end of the tokens list
     }
 }
 
