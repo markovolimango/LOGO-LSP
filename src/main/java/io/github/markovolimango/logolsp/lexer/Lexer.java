@@ -81,6 +81,7 @@ public class Lexer {
 
             }
         }
+        tokens.add(new Token(Token.Type.EOF, "", curr, curr));
         return tokens;
     }
 

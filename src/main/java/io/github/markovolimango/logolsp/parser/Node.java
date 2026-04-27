@@ -25,7 +25,7 @@ public sealed interface Node {
     record ProcDef(Token name, List<Token> params, List<Node> body, Pos start, Pos end) implements Node {
     }
 
-    record ProcCall(Token name, List<Node> arg, Pos start, Pos end) implements Node {
+    record ProcCall(Token name, List<Node> args, Pos start, Pos end) implements Node {
     }
 
     record MakeStmt(Node name, Node value, Pos start, Pos end) implements Node {
