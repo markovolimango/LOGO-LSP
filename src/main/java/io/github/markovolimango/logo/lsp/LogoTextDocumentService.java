@@ -69,9 +69,32 @@ public class LogoTextDocumentService implements TextDocumentService {
             String uri = params.getTextDocument().getUri();
             Position position = params.getPosition();
             Pos startPos = new Pos(0, position.getLine(), position.getCharacter());
-            String name = getWordAt(uri, position);
+
+            String text = documents.get(uri);
+            if (text == null) return null;
+
+            String[] lines = text.split("\n");
+            if (position.getLine() >= lines.length) return null;
+
+            String line = lines[position.getLine()];
+            int col = position.getCharacter();
+
+            // Simple regex or boundary check to find the word start/end
+            // This is a naive implementation; adjust based on your language's syntax
+            int start = col;
+            while (start > 0 && !Lexer.isDelimiter(line.charAt(start - 1)) && line.charAt(start - 1) != ':')
+                start--;
+
+            int end = col;
+            while (end < line.length() && !Lexer.isDelimiter(line.charAt(end)))
+                end++;
+
+            boolean isVar = start - 1 >= 0 && line.charAt(start - 1) == ':';
+
+            String name = (start == end) ? null : line.substring(start, end);
+
             if (name == null) return Either.forLeft(new ArrayList<>());
-            Symbol symbol = symTable.get(name, startPos);
+            Symbol symbol = isVar ? symTable.getVarDef(name, startPos) : symTable.getProcDef(name, startPos);
             if (symbol != null) {
                 Range range = new Range(new Position(symbol.start().line(), symbol.start().col()), new Position(symbol.end().line(), symbol.end().col()));
                 return Either.forLeft(List.of(new Location(uri, range)));
@@ -79,29 +102,6 @@ public class LogoTextDocumentService implements TextDocumentService {
 
             return Either.forLeft(List.of());
         });
-    }
-
-    private String getWordAt(String uri, Position pos) {
-        String text = documents.get(uri);
-        if (text == null) return null;
-
-        String[] lines = text.split("\n");
-        if (pos.getLine() >= lines.length) return null;
-
-        String line = lines[pos.getLine()];
-        int col = pos.getCharacter();
-
-        // Simple regex or boundary check to find the word start/end
-        // This is a naive implementation; adjust based on your language's syntax
-        int start = col;
-        while (start > 0 && !Lexer.isDelimiter(line.charAt(start - 1)) && line.charAt(start - 1) != ':')
-            start--;
-
-        int end = col;
-        while (end < line.length() && !Lexer.isDelimiter(line.charAt(end)))
-            end++;
-
-        return (start == end) ? null : line.substring(start, end);
     }
 
     private void validate(String uri, String text) {

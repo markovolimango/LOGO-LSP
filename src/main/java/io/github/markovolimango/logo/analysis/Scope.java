@@ -26,13 +26,22 @@ public class Scope {
         symbols.get(symbol.name()).add(symbol);
     }
 
-    public Symbol getDefinition(String name, Pos start) {
+    public Symbol.Var getVarDef(String name, Pos start) {
         var list = symbols.get(name);
         if (list != null)
-            for (Symbol symbol : list)
-                if (start.isAfter(symbol.end()))
-                    return symbol;
-        return parent != null ? parent.getDefinition(name, start) : null;
+            for (Symbol symbol : list.reversed())
+                if (symbol instanceof Symbol.Var && start.isAfter(symbol.end()))
+                    return (Symbol.Var) symbol;
+        return parent != null ? parent.getVarDef(name, start) : null;
+    }
+
+    public Symbol.Proc getProcDef(String name, Pos start) {
+        var list = symbols.get(name);
+        if (list != null)
+            for (Symbol symbol : list.reversed())
+                if (symbol instanceof Symbol.Proc && start.isAfter(symbol.end()))
+                    return (Symbol.Proc) symbol;
+        return parent != null ? parent.getProcDef(name, start) : null;
     }
 
     public List<Scope> getChildren() {

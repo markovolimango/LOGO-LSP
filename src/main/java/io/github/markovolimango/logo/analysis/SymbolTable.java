@@ -9,7 +9,11 @@ public class SymbolTable {
         this.globalScope = globalScope;
     }
 
-    public Symbol get(String name, Pos start) {
+    public Symbol getProcDef(String name, Pos start) {
+        return globalScope.getProcDef(name, start);
+    }
+
+    public Symbol getVarDef(String name, Pos start) {
         Scope current = globalScope;
         boolean digging = true;
 
@@ -26,6 +30,6 @@ public class SymbolTable {
             }
         }
 
-        return current.getDefinition(name, start);
+        return current.getVarDef(name, start);
     }
 }

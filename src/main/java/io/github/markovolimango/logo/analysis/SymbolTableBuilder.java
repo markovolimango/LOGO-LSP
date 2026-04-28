@@ -15,10 +15,10 @@ public class SymbolTableBuilder extends ASTWalker {
         switch (node) {
             case Node.ToStmt n -> {
                 System.err.println("defining TO");
-                globalScope.addDefinition(new Symbol(n.name().text(), n.name().start(), n.name().end()));
+                globalScope.addDefinition(new Symbol.Proc(n.name().text(), n.name().start(), n.name().end()));
                 scopeStack.push(new Scope(currentScope(), n.start(), n.end()));
                 for (Token param : n.params())
-                    currentScope().addDefinition(new Symbol(param.text(), param.start(), param.end()));
+                    currentScope().addDefinition(new Symbol.Var(param.text(), param.start(), param.end()));
                 super.walk(n);
                 scopeStack.pop();
             }
@@ -26,16 +26,16 @@ public class SymbolTableBuilder extends ASTWalker {
                 System.err.println("defining DEFINE");
                 if (n.name() instanceof Node.Word) {
                     Token nameToken = ((Node.Word) n.name()).value();
-                    globalScope.addDefinition(new Symbol(nameToken.text(), nameToken.start(), nameToken.end()));
+                    globalScope.addDefinition(new Symbol.Proc(nameToken.text(), nameToken.start(), nameToken.end()));
                 }
                 scopeStack.push(new Scope(currentScope(), n.start(), n.end()));
                 for (Node param : n.params().body()) {
                     if (param instanceof Node.Word) {
                         Token paramToken = ((Node.Word) param).value();
-                        currentScope().addDefinition(new Symbol(paramToken.text(), paramToken.start(), paramToken.end()));
+                        currentScope().addDefinition(new Symbol.Var(paramToken.text(), paramToken.start(), paramToken.end()));
                     } else if (param instanceof Node.ProcCall) {
                         Token paramToken = ((Node.ProcCall) param).name();
-                        currentScope().addDefinition(new Symbol(paramToken.text(), paramToken.start(), paramToken.end()));
+                        currentScope().addDefinition(new Symbol.Var(paramToken.text(), paramToken.start(), paramToken.end()));
                     } else {
                         super.walk(param);
                     }
@@ -45,19 +45,20 @@ public class SymbolTableBuilder extends ASTWalker {
             }
             case Node.MakeStmt n -> {
                 System.err.println("defining MAKE");
+                super.walk(n.value());
                 if (n.name() instanceof Node.Word) {
                     Token nameToken = ((Node.Word) n.name()).value();
-                    globalScope.addDefinition(new Symbol(nameToken.text(), nameToken.start(), nameToken.end()));
+                    globalScope.addDefinition(new Symbol.Var(nameToken.text(), nameToken.start(), nameToken.end()));
+                    currentScope().addDefinition(new Symbol.Var(nameToken.text(), nameToken.start(), nameToken.end()));
                 }
-                super.walk(n.value());
             }
             case Node.LocalMakeStmt n -> {
                 System.err.println("defining LOCALMAKE");
+                super.walk(n.value());
                 if (n.name() instanceof Node.Word) {
                     Token nameToken = ((Node.Word) n.name()).value();
-                    currentScope().addDefinition(new Symbol(nameToken.text(), nameToken.start(), nameToken.end()));
+                    currentScope().addDefinition(new Symbol.Var(nameToken.text(), nameToken.start(), nameToken.end()));
                 }
-                super.walk(n.value());
             }
             default -> super.walk(node);
         }
