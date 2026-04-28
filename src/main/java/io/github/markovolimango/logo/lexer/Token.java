@@ -1,4 +1,4 @@
-package io.github.markovolimango.logolsp.lexer;
+package io.github.markovolimango.logo.lexer;
 
 public record Token(
         Type type,

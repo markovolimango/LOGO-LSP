@@ -1,4 +1,4 @@
-package io.github.markovolimango.logolsp.lexer;
+package io.github.markovolimango.logo.lexer;
 
 import java.util.Map;
 

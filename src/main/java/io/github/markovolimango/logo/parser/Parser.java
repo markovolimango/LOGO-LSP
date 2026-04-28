@@ -1,7 +1,6 @@
-package io.github.markovolimango.logolsp.parser;
+package io.github.markovolimango.logo.parser;
 
-import io.github.markovolimango.logolsp.lexer.Pos;
-import io.github.markovolimango.logolsp.lexer.Token;
+import io.github.markovolimango.logo.lexer.Token;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -155,7 +154,7 @@ public class Parser {
         this.pos = 0;
     }
 
-    public Node parseProgram() {
+    public Node.Program parseProgram() {
         var body = new ArrayList<Node>();
         while (peek().type() != Token.Type.EOF) {
             body.add(parseExpr());
@@ -163,10 +162,10 @@ public class Parser {
         return new Node.Program(body, body.getFirst().start(), body.getLast().end());
     }
 
-    public Node parseMakeStmt() {
+    public Node.MakeStmt parseMakeStmt() {
         Token keyword = consume();
         switch (keyword.type()) {
-            case Token.Type.MAKE, Token.Type.LOCALMAKE -> {
+            case Token.Type.MAKE -> {
                 Node name = parseExpr();
                 Node value = parseExpr();
                 return new Node.MakeStmt(name, value, keyword.start(), value.end());
@@ -180,41 +179,44 @@ public class Parser {
         }
     }
 
-    public Node parseOutputStmt() {
+    public Node.LocalMakeStmt parseLocalMakeStmt() {
+        Token keyword = expect(Token.Type.LOCALMAKE);
+        Node name = parseExpr();
+        Node value = parseExpr();
+        return new Node.LocalMakeStmt(name, value, keyword.start(), value.end());
+    }
+
+    public Node.OutputStmt parseOutputStmt() {
         Token keyword = expect(Token.Type.OUTPUT);
         var value = parseExpr();
         return new Node.OutputStmt(value, keyword.start(), value.end());
     }
 
-    public Node parseProcDef() {
-        Token keyword = consume();
-        Token name;
-        List<Node> params = new ArrayList<>();
+    public Node.ToStmt parseToStmt() {
+        Token toToken = expect(Token.Type.TO);
+        Token name = expect(Token.Type.PROC);
+        List<Token> params = new ArrayList<>();
         List<Node> body = new ArrayList<>();
-        Pos end;
-        if (keyword.type() == Token.Type.TO) {
-            name = expect(Token.Type.PROC);
-            while (peek().type() == Token.Type.VARREF)
-                params.add(parseExpr());
-            userDefinedArity.put(name.text(), params.size());
-            while (peek().type() != Token.Type.END && peek().type() != Token.Type.EOF)
-                body.add(parseExpr());
-            end = expect(Token.Type.END).end();
-        } else if (keyword.type() == Token.Type.DEFINE) {
-            name = expect(Token.Type.WORD);
-            var block = (Node.Block) parseBlock();
-            if (block.body().size() != 2) throw parseError("no");
-            end = block.end();
-            params = ((Node.Block) block.body().getFirst()).body();
-            body = ((Node.Block) block.body().getLast()).body();
-            userDefinedArity.put(name.text(), params.size());
-        } else {
-            throw parseError("invalid proc def");
-        }
-        return new Node.ProcDef(name, params, body, keyword.start(), end);
+        while (peek().type() == Token.Type.VARREF)
+            params.add(consume());
+        userDefinedArity.put(name.text(), params.size());
+        while (peek().type() != Token.Type.EOF && peek().type() != Token.Type.END)
+            body.add(parseExpr());
+        Token endToken = expect(Token.Type.END);
+        return new Node.ToStmt(name, params, body, toToken.start(), endToken.end());
     }
 
-    public Node parseProcCall() {
+    public Node.DefineStmt parseDefineStmt() {
+        Token defineToken = expect(Token.Type.DEFINE);
+        Node name = parseExpr();
+        Node.Block block = (Node.Block) parseBlock();
+        if (block.body().size() != 2) throw parseError("no");
+        Node.Block params = (Node.Block) block.body().getFirst();
+        Node.Block body = (Node.Block) block.body().getLast();
+        return new Node.DefineStmt(name, params, body, defineToken.start(), block.end());
+    }
+
+    public Node.ProcCall parseProcCall() {
         Token name = consume();
         Integer arity = getProcArity(name.text());
         if (arity == null)
@@ -225,7 +227,7 @@ public class Parser {
         return new Node.ProcCall(name, args, name.start(), args.isEmpty() ? name.end() : args.getLast().end());
     }
 
-    public Node parseBlock() {
+    public Node.Block parseBlock() {
         Token lbracket = expect(Token.Type.LBRACKET);
         var body = new ArrayList<Node>();
         while (peek().type() != Token.Type.RBRACKET && peek().type() != Token.Type.EOF) {
@@ -289,14 +291,20 @@ public class Parser {
             case LBRACKET -> {
                 return parseBlock();
             }
-            case MAKE, LOCALMAKE, NAME -> {
+            case MAKE, NAME -> {
                 return parseMakeStmt();
+            }
+            case LOCALMAKE -> {
+                return parseLocalMakeStmt();
             }
             case OUTPUT -> {
                 return parseOutputStmt();
             }
-            case TO, DEFINE -> {
-                return parseProcDef();
+            case TO -> {
+                return parseToStmt();
+            }
+            case DEFINE -> {
+                return parseDefineStmt();
             }
             default -> throw parseError("Unexpected token: " + t.text() + " (" + t.type() + ")");
         }

@@ -1,4 +1,4 @@
-package io.github.markovolimango.logolsp.lexer;
+package io.github.markovolimango.logo.lexer;
 
 public record Pos(
         int offs,
@@ -11,5 +11,9 @@ public record Pos(
 
     public Pos nextLine() {
         return new Pos(offs, line + 1, 0);
+    }
+
+    public boolean isAfter(Pos other) {
+        return line > other.line || (line == other.line && col > other.col);
     }
 }

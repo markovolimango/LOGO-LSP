@@ -1,7 +1,7 @@
-package io.github.markovolimango.logolsp.parser;
+package io.github.markovolimango.logo.parser;
 
-import io.github.markovolimango.logolsp.lexer.Pos;
-import io.github.markovolimango.logolsp.lexer.Token;
+import io.github.markovolimango.logo.lexer.Pos;
+import io.github.markovolimango.logo.lexer.Token;
 
 import java.util.List;
 
@@ -25,10 +25,16 @@ public sealed interface Node {
     record VarRef(Token name, Pos start, Pos end) implements Node {
     }
 
-    record ProcDef(Token name, List<Node> params, List<Node> body, Pos start, Pos end) implements Node {
+    record ToStmt(Token name, List<Token> params, List<Node> body, Pos start, Pos end) implements Node {
+    }
+
+    record DefineStmt(Node name, Block params, Block body, Pos start, Pos end) implements Node {
     }
 
     record ProcCall(Token name, List<Node> args, Pos start, Pos end) implements Node {
+    }
+
+    record LocalMakeStmt(Node name, Node value, Pos start, Pos end) implements Node {
     }
 
     record MakeStmt(Node name, Node value, Pos start, Pos end) implements Node {

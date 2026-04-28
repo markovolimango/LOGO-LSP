@@ -1,4 +1,4 @@
-package io.github.markovolimango.logolsp.lexer;
+package io.github.markovolimango.logo.lexer;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -17,7 +17,7 @@ public class Lexer {
         return "\"[]() \t\n\r;\0".indexOf(c) == -1;
     }
 
-    private static boolean isDelimiter(char c) {
+    public static boolean isDelimiter(char c) {
         return "\"[]() \t\n\r\0+-*/%<>=".indexOf(c) != -1;
     }
 

@@ -1,0 +1,23 @@
+to helper :x
+    make "temp :x
+    forward :temp
+end
+
+to draw :size :color
+    make "size :size * 2
+    repeat :size [
+        helper :size
+        right 90
+    ]
+end
+
+make "size 100
+make "size 200
+
+to size
+    forward :size
+end
+
+draw :size 1
+size
+helper :size

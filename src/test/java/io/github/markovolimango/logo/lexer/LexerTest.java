@@ -1,4 +1,4 @@
-package io.github.markovolimango.logolsp.lexer;
+package io.github.markovolimango.logo.lexer;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -11,7 +11,9 @@ import static org.junit.jupiter.api.Assertions.*;
 class LexerTest {
 
     private List<Token> lex(String source) {
-        return new Lexer(source).scan();
+        var tokens = new Lexer(source).scan();
+        tokens.removeLast();
+        return tokens;
     }
 
     private Token only(String source) {
