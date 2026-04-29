@@ -1,5 +1,7 @@
 package io.github.markovolimango.logo.parser;
 
+import io.github.markovolimango.logo.ast.ASTPrinter;
+import io.github.markovolimango.logo.ast.Node;
 import io.github.markovolimango.logo.lexer.Lexer;
 import io.github.markovolimango.logo.lexer.Token;
 import org.junit.jupiter.api.Test;
@@ -15,7 +17,7 @@ class ParserTest {
     // -------------------------------------------------------------------------
 
     private ParseResult parse(String source) {
-        List<Token> tokens = new Lexer(source).scan();
+        List<Token> tokens = new Lexer(source).tokenize();
         Parser parser = new Parser(tokens);
         Node.Program program = parser.parseProgram();
         return new ParseResult(program, parser);

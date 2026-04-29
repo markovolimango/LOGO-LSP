@@ -1,4 +1,4 @@
-package io.github.markovolimango.logo.parser;
+package io.github.markovolimango.logo.ast;
 
 import java.util.stream.Collectors;
 

@@ -11,7 +11,7 @@ import static org.junit.jupiter.api.Assertions.*;
 class LexerTest {
 
     private List<Token> lex(String source) {
-        var tokens = new Lexer(source).scan();
+        var tokens = new Lexer(source).tokenize();
         tokens.removeLast();
         return tokens;
     }

@@ -1,4 +1,4 @@
-package io.github.markovolimango.logo.parser;
+package io.github.markovolimango.logo.ast;
 
 import io.github.markovolimango.logo.lexer.Pos;
 import io.github.markovolimango.logo.lexer.Token;

@@ -36,7 +36,7 @@ public class Lexer {
         return s[i - 1] >= '0' && '9' >= s[i - 1];
     }
 
-    public List<Token> scan() {
+    public List<Token> tokenize() {
         while (curr.offs() < source.length() - 2) {
             start = curr;
             char c = consume();

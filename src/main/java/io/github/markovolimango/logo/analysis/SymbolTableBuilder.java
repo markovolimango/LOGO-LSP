@@ -1,8 +1,8 @@
 package io.github.markovolimango.logo.analysis;
 
 import io.github.markovolimango.logo.lexer.Token;
-import io.github.markovolimango.logo.parser.ASTWalker;
-import io.github.markovolimango.logo.parser.Node;
+import io.github.markovolimango.logo.ast.ASTWalker;
+import io.github.markovolimango.logo.ast.Node;
 
 import java.util.Stack;
 
@@ -14,7 +14,6 @@ public class SymbolTableBuilder extends ASTWalker {
     public void walk(Node node) {
         switch (node) {
             case Node.ToStmt n -> {
-                System.err.println("defining TO");
                 globalScope.addDefinition(new Symbol.Proc(n.name().text(), n.name().start(), n.name().end()));
                 scopeStack.push(new Scope(currentScope(), n.start(), n.end()));
                 for (Token param : n.params())
@@ -23,7 +22,6 @@ public class SymbolTableBuilder extends ASTWalker {
                 scopeStack.pop();
             }
             case Node.DefineStmt n -> {
-                System.err.println("defining DEFINE");
                 if (n.name() instanceof Node.Word) {
                     Token nameToken = ((Node.Word) n.name()).value();
                     globalScope.addDefinition(new Symbol.Proc(nameToken.text(), nameToken.start(), nameToken.end()));
@@ -44,7 +42,6 @@ public class SymbolTableBuilder extends ASTWalker {
                 scopeStack.pop();
             }
             case Node.MakeStmt n -> {
-                System.err.println("defining MAKE");
                 super.walk(n.value());
                 if (n.name() instanceof Node.Word) {
                     Token nameToken = ((Node.Word) n.name()).value();
@@ -53,7 +50,6 @@ public class SymbolTableBuilder extends ASTWalker {
                 }
             }
             case Node.LocalMakeStmt n -> {
-                System.err.println("defining LOCALMAKE");
                 super.walk(n.value());
                 if (n.name() instanceof Node.Word) {
                     Token nameToken = ((Node.Word) n.name()).value();

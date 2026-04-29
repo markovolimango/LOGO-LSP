@@ -5,7 +5,7 @@ import io.github.markovolimango.logo.analysis.SymbolTable;
 import io.github.markovolimango.logo.analysis.SymbolTableBuilder;
 import io.github.markovolimango.logo.lexer.Lexer;
 import io.github.markovolimango.logo.lexer.Pos;
-import io.github.markovolimango.logo.parser.Node;
+import io.github.markovolimango.logo.ast.Node;
 import io.github.markovolimango.logo.parser.Parser;
 import org.eclipse.lsp4j.*;
 import org.eclipse.lsp4j.jsonrpc.messages.Either;
@@ -36,7 +36,7 @@ public class LogoTextDocumentService implements TextDocumentService {
         documents.put(uri, text);
         validate(uri, text);
 
-        var tokens = new Lexer(text).scan();
+        var tokens = new Lexer(text).tokenize();
         ast = new Parser(tokens).parseProgram();
         symTable = new SymbolTableBuilder().build(ast);
     }
@@ -50,7 +50,7 @@ public class LogoTextDocumentService implements TextDocumentService {
         documents.put(uri, text);
         validate(uri, text);
 
-        var tokens = new Lexer(text).scan();
+        var tokens = new Lexer(text).tokenize();
         ast = new Parser(tokens).parseProgram();
         symTable = new SymbolTableBuilder().build(ast);
     }
