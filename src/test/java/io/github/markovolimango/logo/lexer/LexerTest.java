@@ -255,6 +255,14 @@ class LexerTest {
     }
 
     @Test
+    void comment_recognizesWithoutSpace() {
+        var tokens = lex("to name end;com ment");
+        assertEquals(4, tokens.size());
+        assertEquals(Token.Type.COMMENT, tokens.getLast().type());
+        assertEquals("com ment", tokens.getLast().text());
+    }
+
+    @Test
     void comment_emptyComment() {
         Token t = only(";");
         assertEquals(Token.Type.COMMENT, t.type());

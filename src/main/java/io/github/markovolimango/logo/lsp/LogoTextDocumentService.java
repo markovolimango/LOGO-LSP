@@ -9,13 +9,15 @@ import org.eclipse.lsp4j.jsonrpc.messages.Either;
 import org.eclipse.lsp4j.services.LanguageClient;
 import org.eclipse.lsp4j.services.TextDocumentService;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.*;
 
 public class LogoTextDocumentService implements TextDocumentService {
     private final Map<String, DocumentState> documents = new ConcurrentHashMap<>();
+    private final Map<String, ScheduledFuture<?>> pendingReparses = new HashMap<>();
+    private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
     private LanguageClient client;
 
     public void setClient(LanguageClient client) {
@@ -33,7 +35,14 @@ public class LogoTextDocumentService implements TextDocumentService {
     public void didChange(DidChangeTextDocumentParams params) {
         String uri = params.getTextDocument().getUri();
         String text = params.getContentChanges().getFirst().getText();
-        documents.put(uri, new DocumentState(uri, text));
+
+        ScheduledFuture<?> pending = pendingReparses.get(uri);
+        if (pending != null) pending.cancel(true);
+        ScheduledFuture<?> future = scheduler.schedule(() -> {
+            documents.put(uri, new DocumentState(uri, text));
+            System.err.println("mare");
+        }, 150, TimeUnit.MILLISECONDS);
+        pendingReparses.put(uri, future);
     }
 
     @Override

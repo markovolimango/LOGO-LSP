@@ -20,7 +20,7 @@ public class Lexer {
     }
 
     public static boolean isNotDelimiter(char c) {
-        return "\"[]() \t\n\r\0+-*/%<>=".indexOf(c) == -1;
+        return "\"[]() \t\n\r\0+-*/%<>=;".indexOf(c) == -1;
     }
 
     private static boolean isNumber(String string) {
