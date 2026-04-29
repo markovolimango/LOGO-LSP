@@ -101,6 +101,13 @@ class LexerTest {
         assertEquals(Token.Type.PROC, tokens.get(1).type());
     }
 
+    @Test
+    void word_emptyWord() {
+        Token t = only("\"");
+        assertEquals(Token.Type.WORD, t.type());
+        assertEquals("", t.text());
+    }
+
     // -------------------------------------------------------------------------
     // Variable references
     // -------------------------------------------------------------------------
@@ -283,6 +290,27 @@ class LexerTest {
     void whitespace_newlineProducesNoTokens() {
         List<Token> tokens = lex("\n\n");
         assertTrue(tokens.isEmpty());
+    }
+
+    @Test
+    void whitespace_differentLineEndings() {
+        // LF
+        List<Token> lf = lex("fd 10\nfd 20");
+        assertEquals(4, lf.size());
+        assertEquals(0, lf.get(0).start().line());
+        assertEquals(1, lf.get(2).start().line());
+
+        // CRLF
+        List<Token> crlf = lex("fd 10\r\nfd 20");
+        assertEquals(4, crlf.size());
+        assertEquals(0, crlf.get(0).start().line());
+        assertEquals(1, crlf.get(2).start().line());
+
+        // CR only
+        List<Token> cr = lex("fd 10\rfd 20");
+        assertEquals(4, cr.size());
+        assertEquals(0, cr.get(0).start().line());
+        assertEquals(1, cr.get(2).start().line());
     }
 
     // -------------------------------------------------------------------------

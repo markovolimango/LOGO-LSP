@@ -108,9 +108,19 @@ public class Parser {
             errors.add(new ParseError("Undefined procedure: " + name.text(), name.start(), name.end()));
             arity = 0;
         }
-        var args = new ArrayList<Node>(arity);
-        while (arity-- > 0)
-            args.add(parseExpr());
+
+        var args = new ArrayList<Node>(Math.max(0, arity));
+        if (arity >= 0) {
+            while (arity-- > 0)
+                args.add(parseExpr());
+        } else {
+            // Variadic, only allowed within parentheses which are handled in parseNud
+            // but we need to know if we are inside parentheses.
+            // Actually, we can just consume until RPAREN if we are variadic.
+            while (peek().type() != Token.Type.RPAREN && peek().type() != Token.Type.EOF) {
+                args.add(parseExpr());
+            }
+        }
         return new Node.ProcCall(name, args, name.start(), args.isEmpty() ? name.end() : args.getLast().end());
     }
 

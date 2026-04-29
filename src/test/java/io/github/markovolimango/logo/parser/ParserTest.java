@@ -121,6 +121,22 @@ class ParserTest {
     }
 
     @Test
+    void operatorPrecedence_complex() {
+        // 1 + 2 * 3 - 4 / 5  should be (1 + (2 * 3)) - (4 / 5)
+        Node.Program program = parseProgram("1 + 2 * 3 - 4 / 5");
+        Node.InfixExpr top = (Node.InfixExpr) program.body().getFirst();
+        assertEquals("-", top.op().text());
+
+        Node.InfixExpr left = (Node.InfixExpr) top.left();
+        assertEquals("+", left.op().text());
+        assertEquals("1", ((Node.Number) left.left()).value().text());
+        assertEquals("*", ((Node.InfixExpr) left.right()).op().text());
+
+        Node.InfixExpr right = (Node.InfixExpr) top.right();
+        assertEquals("/", right.op().text());
+    }
+
+    @Test
     void parentheses_overridePrecedence() {
         // (2 + 3) * 4 — top operator must be *
         Node.Program program = parseProgram("(2 + 3) * 4");
@@ -172,6 +188,15 @@ class ParserTest {
     void ifelseCall_hasThreeArguments() {
         Node.ProcCall call = (Node.ProcCall) parseProgram("ifelse 1 > 0 [forward 10] [back 10]").body().getFirst();
         assertEquals(3, call.args().size());
+    }
+
+    @Test
+    void listCall_variadic() {
+        // (list 1 2 3 4)
+        Node.Program program = parseProgram("(list 1 2 3 4)");
+        Node.ProcCall call = (Node.ProcCall) program.body().getFirst();
+        assertEquals("list", call.name().text());
+        assertEquals(4, call.args().size());
     }
 
     @Test
@@ -367,6 +392,18 @@ class ParserTest {
     void multipleErrors_allReported() {
         Parser parser = parseWithErrors("bogus1\nbogus2\nbogus3");
         assertTrue(parser.getErrors().size() >= 3);
+    }
+
+    @Test
+    void recovery_missingArgumentDoesNotBlockNextStatement() {
+        // [ forward ] back 10
+        // If we put it in a block, maybe we can see it failing inside but continuing after
+        Parser parser = new Parser(new Lexer("[ forward ] back 10").tokenize());
+        Node.Program program = parser.parseProgram();
+
+        boolean foundBack = program.body().stream()
+                .anyMatch(n -> n instanceof Node.ProcCall pc && pc.name().text().equalsIgnoreCase("back"));
+        assertTrue(foundBack);
     }
 
     @Test
