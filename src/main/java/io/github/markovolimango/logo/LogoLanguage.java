@@ -176,6 +176,7 @@ public final class LogoLanguage {
     }
 
     public static boolean isBuiltin(String procName) {
-        return BUILTIN_ARITY.containsKey(procName.toLowerCase());
+        return BUILTIN_ARITY.containsKey(procName.toLowerCase()) ||
+                (KEYWORDS.containsKey(procName.toLowerCase()) && KEYWORDS.get(procName.toLowerCase()) != Token.Type.OPERATOR);
     }
 }

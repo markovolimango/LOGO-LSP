@@ -1,7 +1,5 @@
 package io.github.markovolimango.logo.parser;
 
-import io.github.markovolimango.logo.ast.AstPrinter;
-import io.github.markovolimango.logo.ast.Node;
 import io.github.markovolimango.logo.lexer.Lexer;
 import io.github.markovolimango.logo.lexer.Token;
 import org.junit.jupiter.api.Test;

@@ -1,4 +1,4 @@
-package io.github.markovolimango.logo.analysis.features;
+package io.github.markovolimango.logo.features;
 
 import io.github.markovolimango.logo.analysis.Symbol;
 import io.github.markovolimango.logo.lexer.Lexer;

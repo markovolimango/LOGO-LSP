@@ -1,8 +1,8 @@
 package io.github.markovolimango.logo.analysis;
 
 import io.github.markovolimango.logo.lexer.Token;
-import io.github.markovolimango.logo.ast.AstWalker;
-import io.github.markovolimango.logo.ast.Node;
+import io.github.markovolimango.logo.parser.AstWalker;
+import io.github.markovolimango.logo.parser.Node;
 
 import java.util.Stack;
 

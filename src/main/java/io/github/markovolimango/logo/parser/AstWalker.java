@@ -1,4 +1,4 @@
-package io.github.markovolimango.logo.ast;
+package io.github.markovolimango.logo.parser;
 
 public class AstWalker {
     public void walk(Node node) {

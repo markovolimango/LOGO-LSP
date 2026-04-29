@@ -1,10 +1,9 @@
 package io.github.markovolimango.logo.lsp;
 
-import io.github.markovolimango.logo.analysis.features.SemanticTokensProvider;
+import io.github.markovolimango.logo.features.SemanticTokensProvider;
 import org.eclipse.lsp4j.*;
 import org.eclipse.lsp4j.services.*;
 
-import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 public class LogoLanguageServer implements LanguageServer, LanguageClientAware {
@@ -30,9 +29,10 @@ public class LogoLanguageServer implements LanguageServer, LanguageClientAware {
 
         capabilities.setDefinitionProvider(true);
         capabilities.setDeclarationProvider(true);
+
         SemanticTokensLegend legend = new SemanticTokensLegend(
                 SemanticTokensProvider.TOKEN_TYPES,
-                List.of()
+                SemanticTokensProvider.TOKEN_MODIFIERS
         );
         SemanticTokensWithRegistrationOptions options = new SemanticTokensWithRegistrationOptions(legend);
         options.setFull(true);

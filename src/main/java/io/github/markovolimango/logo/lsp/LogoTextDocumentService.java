@@ -1,8 +1,8 @@
 package io.github.markovolimango.logo.lsp;
 
 import io.github.markovolimango.logo.analysis.Symbol;
-import io.github.markovolimango.logo.analysis.features.DefinitionProvider;
-import io.github.markovolimango.logo.analysis.features.SemanticTokensProvider;
+import io.github.markovolimango.logo.features.DefinitionProvider;
+import io.github.markovolimango.logo.features.SemanticTokensProvider;
 import io.github.markovolimango.logo.lexer.Pos;
 import org.eclipse.lsp4j.*;
 import org.eclipse.lsp4j.jsonrpc.messages.Either;
@@ -47,11 +47,9 @@ public class LogoTextDocumentService implements TextDocumentService {
     @Override
     public CompletableFuture<SemanticTokens> semanticTokensFull(SemanticTokensParams params) {
         DocumentState state = documents.get(params.getTextDocument().getUri());
-        if (state == null) return CompletableFuture.completedFuture(new SemanticTokens(List.of()));
-
-        return CompletableFuture.supplyAsync(() ->
-                LspConverter.toSemanticTokens(SemanticTokensProvider.getTokens(state))
-        );
+        if (state == null)
+            return CompletableFuture.completedFuture(new SemanticTokens(List.of()));
+        return CompletableFuture.supplyAsync(() -> SemanticTokensProvider.getSemanticTokens(state));
     }
 
     @Override
