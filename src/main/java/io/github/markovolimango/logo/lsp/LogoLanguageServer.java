@@ -4,6 +4,7 @@ import io.github.markovolimango.logo.features.SemanticTokensProvider;
 import org.eclipse.lsp4j.*;
 import org.eclipse.lsp4j.services.*;
 
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 public class LogoLanguageServer implements LanguageServer, LanguageClientAware {
@@ -37,6 +38,10 @@ public class LogoLanguageServer implements LanguageServer, LanguageClientAware {
         SemanticTokensWithRegistrationOptions options = new SemanticTokensWithRegistrationOptions(legend);
         options.setFull(true);
         capabilities.setSemanticTokensProvider(options);
+
+        CompletionOptions completionOptions = new CompletionOptions();
+        completionOptions.setTriggerCharacters(List.of(":"));
+        capabilities.setCompletionProvider(completionOptions);
 
         InitializeResult result = new InitializeResult(capabilities);
         return CompletableFuture.completedFuture(result);

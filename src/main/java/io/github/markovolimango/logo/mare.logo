@@ -18,6 +18,10 @@ to size
     forward :size
 end
 
+to mare
+  print 4
+end
+
 draw :size 1
 size
 helper :size

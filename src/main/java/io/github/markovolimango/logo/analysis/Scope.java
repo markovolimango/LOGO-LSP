@@ -26,6 +26,26 @@ public class Scope {
         symbols.get(symbol.name()).add(symbol);
     }
 
+    public List<String> getVarNames(Pos start) {
+        var res = parent != null ? parent.getVarNames(start) : new ArrayList<String>();
+        symbols.forEach((name, symbol) -> {
+            for (Symbol s : symbol)
+                if (s instanceof Symbol.Var && start.isAfter(s.end()))
+                    res.add(name);
+        });
+        return res;
+    }
+
+    public List<String> getProcNames(Pos start) {
+        var res = parent != null ? parent.getProcNames(start) : new ArrayList<String>();
+        symbols.forEach((name, symbol) -> {
+            for (Symbol s : symbol)
+                if (s instanceof Symbol.Proc && start.isAfter(s.end()))
+                    res.add(name);
+        });
+        return res;
+    }
+
     public Symbol.Var getVarDef(String name, Pos start) {
         var list = symbols.get(name);
         if (list != null)

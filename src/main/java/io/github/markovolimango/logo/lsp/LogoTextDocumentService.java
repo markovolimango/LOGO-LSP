@@ -1,5 +1,6 @@
 package io.github.markovolimango.logo.lsp;
 
+import io.github.markovolimango.logo.features.CompletionProvider;
 import io.github.markovolimango.logo.features.DefinitionProvider;
 import io.github.markovolimango.logo.features.SemanticTokensProvider;
 import io.github.markovolimango.logo.lexer.Pos;
@@ -74,6 +75,16 @@ public class LogoTextDocumentService implements TextDocumentService {
             Location loc = DefinitionProvider.findDefinition(state, cursor);
             if (loc == null) return Either.forLeft(List.of());
             return Either.forLeft(List.of(loc));
+        });
+    }
+
+    @Override
+    public CompletableFuture<Either<List<CompletionItem>, CompletionList>> completion(CompletionParams params) {
+        String uri = params.getTextDocument().getUri();
+        DocumentState state = documents.get(uri);
+        Pos cursor = LspConverter.fromPosition(params.getPosition());
+        return CompletableFuture.supplyAsync(() -> {
+            return Either.forLeft(CompletionProvider.getCompletion(state, cursor));
         });
     }
 }

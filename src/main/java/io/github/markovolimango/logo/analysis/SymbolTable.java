@@ -2,6 +2,8 @@ package io.github.markovolimango.logo.analysis;
 
 import io.github.markovolimango.logo.lexer.Pos;
 
+import java.util.List;
+
 public class SymbolTable {
     private final Scope globalScope;
 
@@ -11,6 +13,10 @@ public class SymbolTable {
 
     public Symbol.Proc getProcDef(String name, Pos start) {
         return globalScope.getProcDef(name, start);
+    }
+
+    public List<String> getProcNames(Pos start) {
+        return globalScope.getProcNames(start);
     }
 
     public Symbol.Var getVarDef(String name, Pos start) {
@@ -31,5 +37,25 @@ public class SymbolTable {
         }
 
         return current.getVarDef(name, start);
+    }
+
+    public List<String> getVarNames(Pos start) {
+        Scope current = globalScope;
+        boolean digging = true;
+
+        while (digging) {
+            Scope childScope = current.getChildren().stream()
+                    .filter(child -> start.isAfter(child.getStart()) && child.getEnd().isAfter(start))
+                    .findFirst()
+                    .orElse(null);
+
+            if (childScope != null) {
+                current = childScope;
+            } else {
+                digging = false;
+            }
+        }
+
+        return current.getVarNames(start);
     }
 }
