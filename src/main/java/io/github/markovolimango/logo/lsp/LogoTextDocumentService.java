@@ -82,11 +82,11 @@ public class LogoTextDocumentService implements TextDocumentService {
             // Simple regex or boundary check to find the word start/end
             // This is a naive implementation; adjust based on your language's syntax
             int start = col;
-            while (start > 0 && !Lexer.isDelimiter(line.charAt(start - 1)) && line.charAt(start - 1) != ':')
+            while (start > 0 && Lexer.isNotDelimiter(line.charAt(start - 1)) && line.charAt(start - 1) != ':')
                 start--;
 
             int end = col;
-            while (end < line.length() && !Lexer.isDelimiter(line.charAt(end)))
+            while (end < line.length() && Lexer.isNotDelimiter(line.charAt(end)))
                 end++;
 
             boolean isVar = start - 1 >= 0 && line.charAt(start - 1) == ':';

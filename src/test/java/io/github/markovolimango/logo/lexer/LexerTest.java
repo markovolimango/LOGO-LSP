@@ -218,7 +218,6 @@ class LexerTest {
     void keywords_caseInsensitive(String input) {
         Token t = only(input);
         assertNotEquals(Token.Type.PROC, t.type(), input + " should be a keyword, not PROC");
-        assertNotEquals(Token.Type.ERROR, t.type());
     }
 
     // -------------------------------------------------------------------------

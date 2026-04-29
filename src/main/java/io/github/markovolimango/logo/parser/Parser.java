@@ -1,5 +1,6 @@
 package io.github.markovolimango.logo.parser;
 
+import io.github.markovolimango.logo.lexer.Pos;
 import io.github.markovolimango.logo.lexer.Token;
 
 import java.util.ArrayList;
@@ -147,54 +148,61 @@ public class Parser {
 
     private final List<Token> tokens;
     private final Map<String, Integer> userDefinedArity = new HashMap<>();
+    private final List<ParseError> errors = new ArrayList<>();
     private int pos;
+    private Token lastConsumed;
 
     public Parser(List<Token> tokens) {
         this.tokens = tokens;
         this.pos = 0;
     }
 
+    public List<ParseError> getErrors() {
+        return errors;
+    }
+
     public Node.Program parseProgram() {
         var body = new ArrayList<Node>();
-        while (peek().type() != Token.Type.EOF) {
+        while (peek().type() != Token.Type.EOF)
             body.add(parseExpr());
-        }
+        if (body.isEmpty())
+            return new Node.Program(body, new Pos(0, 0, 0), new Pos(0, 0, 0));
         return new Node.Program(body, body.getFirst().start(), body.getLast().end());
     }
 
+    // only called when we know the keyword is correct
     public Node.MakeStmt parseMakeStmt() {
         Token keyword = consume();
-        switch (keyword.type()) {
-            case Token.Type.MAKE -> {
-                Node name = parseExpr();
-                Node value = parseExpr();
-                return new Node.MakeStmt(name, value, keyword.start(), value.end());
-            }
-            case Token.Type.NAME -> {
-                Node value = parseExpr();
-                Node name = parseExpr();
-                return new Node.MakeStmt(name, value, keyword.start(), value.end());
-            }
-            default -> throw parseError("Not a make statement");
+        Node name, value;
+        if (keyword.type() == Token.Type.MAKE) {
+            name = parseExpr();
+            value = parseExpr();
+        } else {
+            value = parseExpr();
+            name = parseExpr();
         }
+        return new Node.MakeStmt(name, value, keyword.start(), value.end());
     }
 
-    public Node.LocalMakeStmt parseLocalMakeStmt() {
-        Token keyword = expect(Token.Type.LOCALMAKE);
+    // only called when we know the keyword is correct
+    public Node parseLocalMakeStmt() {
+        Token keyword = consume();
         Node name = parseExpr();
         Node value = parseExpr();
         return new Node.LocalMakeStmt(name, value, keyword.start(), value.end());
     }
 
-    public Node.OutputStmt parseOutputStmt() {
-        Token keyword = expect(Token.Type.OUTPUT);
+    // only called when we know the keyword is correct
+    public Node parseOutputStmt() {
+        Token keyword = consume();
         var value = parseExpr();
         return new Node.OutputStmt(value, keyword.start(), value.end());
     }
 
-    public Node.ToStmt parseToStmt() {
-        Token toToken = expect(Token.Type.TO);
-        Token name = expect(Token.Type.PROC);
+    // only called when we know the keyword is correct
+    public Node parseToStmt() {
+        Token toToken = consume();
+        Token name = consume();     // maybe check for errors here?
         List<Token> params = new ArrayList<>();
         List<Node> body = new ArrayList<>();
         while (peek().type() == Token.Type.VARREF)
@@ -206,21 +214,36 @@ public class Parser {
         return new Node.ToStmt(name, params, body, toToken.start(), endToken.end());
     }
 
+    // only called when we know the keyword is correct
     public Node.DefineStmt parseDefineStmt() {
-        Token defineToken = expect(Token.Type.DEFINE);
+        consume();
         Node name = parseExpr();
-        Node.Block block = (Node.Block) parseBlock();
-        if (block.body().size() != 2) throw parseError("no");
-        Node.Block params = (Node.Block) block.body().getFirst();
-        Node.Block body = (Node.Block) block.body().getLast();
-        return new Node.DefineStmt(name, params, body, defineToken.start(), block.end());
+        Node.Block block = parseBlock();
+
+        Node.Block params = new Node.Block(new ArrayList<>(), block.start(), block.start());
+        Node.Block body = new Node.Block(new ArrayList<>(), block.end(), block.end());
+        if (block.body().size() != 2) {
+            errors.add(new ParseError("Expected list of length 2 in 'DEFINE'", block.start(), block.end()));
+        } else {
+            if (block.body().getFirst() instanceof Node.Block)
+                params = (Node.Block) block.body().getFirst();
+            else
+                errors.add(new ParseError("Expected list of arguments in 'DEFINE", block.body().getFirst().start(), block.body().getFirst().end()));
+            if (block.body().getLast() instanceof Node.Block)
+                body = (Node.Block) block.body().getLast();
+            else
+                errors.add(new ParseError("Expected list of body statements in 'DEFINE", block.body().getLast().start(), block.body().getLast().end()));
+        }
+        return new Node.DefineStmt(name, params, body, name.start(), block.end());
     }
 
     public Node.ProcCall parseProcCall() {
         Token name = consume();
         Integer arity = getProcArity(name.text());
-        if (arity == null)
-            throw parseError("Undefined procedure");
+        if (arity == null) {
+            errors.add(new ParseError("Undefined procedure: " + name.text(), name.start(), name.end()));
+            arity = 0;
+        }
         var args = new ArrayList<Node>(arity);
         while (arity-- > 0)
             args.add(parseExpr());
@@ -230,9 +253,8 @@ public class Parser {
     public Node.Block parseBlock() {
         Token lbracket = expect(Token.Type.LBRACKET);
         var body = new ArrayList<Node>();
-        while (peek().type() != Token.Type.RBRACKET && peek().type() != Token.Type.EOF) {
+        while (peek().type() != Token.Type.RBRACKET && peek().type() != Token.Type.EOF)
             body.add(parseExpr());
-        }
         Token rbracket = expect(Token.Type.RBRACKET);
         return new Node.Block(body, lbracket.start(), rbracket.end());
     }
@@ -241,7 +263,8 @@ public class Parser {
         return parseExpr(0);
     }
 
-    public Node parseExpr(int minBP) {
+    @SuppressWarnings("InfiniteRecursion")
+    private Node parseExpr(int minBP) {
         Node left = parseNud();
         while (true) {
             Token op = peek();
@@ -258,7 +281,6 @@ public class Parser {
 
     private Node parseNud() {
         Token t = peek();
-        if (t.type() == Token.Type.EOF) throw parseError("Unexpected end of input");
         switch (t.type()) {
             case NUMBER -> {
                 consume();
@@ -281,7 +303,10 @@ public class Parser {
             case OPERATOR -> {
                 consume();
                 Integer rbp = PREFIX_BP.get(t.text());
-                if (rbp == null) throw parseError("Operator '" + t.text() + "' cannot appear in prefix position");
+                if (rbp == null) {
+                    errors.add(new ParseError("Operator '" + t.text() + "' cannot appear in prefix position", t.start(), t.end()));
+                    rbp = 70; // placeholder to keep on parsing
+                }
                 Node operand = parseExpr(rbp);
                 return new Node.PrefixExpr(t, operand, t.start(), operand.end());
             }
@@ -306,42 +331,37 @@ public class Parser {
             case DEFINE -> {
                 return parseDefineStmt();
             }
-            default -> throw parseError("Unexpected token: " + t.text() + " (" + t.type() + ")");
+            default -> {
+                errors.add(new ParseError("Unexpected token: " + t.text(), t.start(), t.end()));
+                return new Node.Number(new Token(Token.Type.NUMBER, "0", t.start(), t.end()), t.start(), t.end());
+            }
         }
     }
 
     private Token peek() {
         Token t = tokens.get(pos);
         while (t.type() == Token.Type.COMMENT)
-            t = tokens.get(pos++);
+            t = tokens.get(++pos);
         return t;
     }
 
     private Token consume() {
         Token t = peek();
         pos++;
+        lastConsumed = t;
         return t;
     }
 
     private Token expect(Token.Type type) {
-        Token t = consume();
-        if (t.type() != type) {
-            throw parseError("Expected '" + type.toString() + "'");
-        }
-        return t;
+        if (peek().type() == type)
+            return consume();
+        errors.add(new ParseError("Expected " + type + ".", peek().start(), peek().end()));
+        return new Token(type, "", lastConsumed.end(), lastConsumed.end());
     }
 
     private Integer getProcArity(String name) {
         var arity = BUILTIN_ARITY.get(name);
         if (arity == null) arity = userDefinedArity.get(name);
         return arity;
-    }
-
-    private RuntimeException parseError(String message) {
-        Token cur = pos < tokens.size() ? tokens.get(pos) : null;
-        String loc = cur != null
-                ? " at " + cur.start()
-                : " at end of input";
-        return new IllegalStateException(message + loc);
     }
 }

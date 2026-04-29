@@ -4,7 +4,7 @@ public record Token(
         Type type,
         String text,
         Pos start,
-        Pos end    // LSP ranges need both ends
+        Pos end
 ) {
     public enum Type {
         NUMBER,                 // 42, 3.14 (negative numbers stored as operator and positive number tokens)
@@ -24,8 +24,6 @@ public record Token(
         LPAREN, RPAREN,         // ( )
 
         COMMENT,                // ;comment (stored without ;)
-
-        ERROR,                  // unknown tokens, for error recovery
 
         EOF,                    // sentinel for the end of the tokens list
     }

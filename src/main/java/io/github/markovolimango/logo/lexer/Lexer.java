@@ -17,8 +17,8 @@ public class Lexer {
         return "\"[]() \t\n\r;\0".indexOf(c) == -1;
     }
 
-    public static boolean isDelimiter(char c) {
-        return "\"[]() \t\n\r\0+-*/%<>=".indexOf(c) != -1;
+    public static boolean isNotDelimiter(char c) {
+        return "\"[]() \t\n\r\0+-*/%<>=".indexOf(c) == -1;
     }
 
     private static boolean isNumber(String string) {
@@ -52,7 +52,7 @@ public class Lexer {
                     addToken(Token.Type.WORD, start.offs() + 1);
                 }
                 case ':' -> {
-                    while (!isDelimiter(peek())) consume();
+                    while (isNotDelimiter(peek())) consume();
                     addToken(Token.Type.VARREF, start.offs() + 1);
                 }
                 case ';' -> {
@@ -69,7 +69,7 @@ public class Lexer {
                     addToken(Token.Type.OPERATOR);
                 }
                 default -> {
-                    while (!isDelimiter(peek())) consume();
+                    while (isNotDelimiter(peek())) consume();
                     String text = source.substring(start.offs(), curr.offs());
                     if (Keywords.map.containsKey(text.toLowerCase()))
                         addToken(Keywords.map.get(text.toLowerCase()));
@@ -81,7 +81,7 @@ public class Lexer {
 
             }
         }
-        tokens.add(new Token(Token.Type.EOF, "", curr, curr));
+        tokens.add(new Token(Token.Type.EOF, "", curr.nextLine(), curr.nextLine()));
         return tokens;
     }
 
