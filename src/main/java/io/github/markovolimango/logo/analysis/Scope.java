@@ -26,42 +26,39 @@ public class Scope {
         symbols.get(symbol.name()).add(symbol);
     }
 
-    public List<String> getVarNames(Pos start) {
-        var res = parent != null ? parent.getVarNames(start) : new ArrayList<String>();
-        symbols.forEach((name, symbol) -> {
-            for (Symbol s : symbol)
-                if (s instanceof Symbol.Var && start.isAfter(s.end()))
-                    res.add(name);
-        });
-        return res;
-    }
-
-    public List<String> getProcNames(Pos start) {
-        var res = parent != null ? parent.getProcNames(start) : new ArrayList<String>();
-        symbols.forEach((name, symbol) -> {
-            for (Symbol s : symbol)
-                if (s instanceof Symbol.Proc && start.isAfter(s.end()))
-                    res.add(name);
-        });
-        return res;
+    private Symbol getDef(String name, Pos start, Class<? extends Symbol> type) {
+        var list = symbols.get(name);
+        if (list != null)
+            for (Symbol symbol : list.reversed())
+                if (symbol.getClass() == type && start.isAfter(symbol.end()))
+                    return symbol;
+        return parent != null ? parent.getDef(name, start, type) : null;
     }
 
     public Symbol.Var getVarDef(String name, Pos start) {
-        var list = symbols.get(name);
-        if (list != null)
-            for (Symbol symbol : list.reversed())
-                if (symbol instanceof Symbol.Var && start.isAfter(symbol.end()))
-                    return (Symbol.Var) symbol;
-        return parent != null ? parent.getVarDef(name, start) : null;
+        return (Symbol.Var) getDef(name, start, Symbol.Var.class);
     }
 
     public Symbol.Proc getProcDef(String name, Pos start) {
-        var list = symbols.get(name);
-        if (list != null)
-            for (Symbol symbol : list.reversed())
-                if (symbol instanceof Symbol.Proc && start.isAfter(symbol.end()))
-                    return (Symbol.Proc) symbol;
-        return parent != null ? parent.getProcDef(name, start) : null;
+        return (Symbol.Proc) getDef(name, start, Symbol.Proc.class);
+    }
+
+    public List<String> getAllNames(Pos start, Class<? extends Symbol> type) {
+        var res = parent != null ? parent.getAllNames(start, type) : new ArrayList<String>();
+        symbols.forEach((name, symbol) -> {
+            for (Symbol s : symbol)
+                if (s.getClass() == type && start.isAfter(s.end()))
+                    res.add(name);
+        });
+        return res;
+    }
+
+    public List<String> getAllVarNames(Pos start) {
+        return getAllNames(start, Symbol.Var.class);
+    }
+
+    public List<String> getAllProcNames(Pos start) {
+        return getAllNames(start, Symbol.Proc.class);
     }
 
     public List<Scope> getChildren() {

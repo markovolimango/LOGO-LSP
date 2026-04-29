@@ -16,46 +16,30 @@ public class SymbolTable {
     }
 
     public List<String> getProcNames(Pos start) {
-        return globalScope.getProcNames(start);
+        return globalScope.getAllProcNames(start);
+    }
+
+    private Scope findDeepestScope(Pos start) {
+        Scope current = globalScope;
+        boolean digging = true;
+        while (digging) {
+            Scope childScope = current.getChildren().stream()
+                    .filter(child -> start.isAfter(child.getStart()) && child.getEnd().isAfter(start))
+                    .findFirst()
+                    .orElse(null);
+            if (childScope != null)
+                current = childScope;
+            else
+                digging = false;
+        }
+        return current;
     }
 
     public Symbol.Var getVarDef(String name, Pos start) {
-        Scope current = globalScope;
-        boolean digging = true;
-
-        while (digging) {
-            Scope childScope = current.getChildren().stream()
-                    .filter(child -> start.isAfter(child.getStart()) && child.getEnd().isAfter(start))
-                    .findFirst()
-                    .orElse(null);
-
-            if (childScope != null) {
-                current = childScope;
-            } else {
-                digging = false;
-            }
-        }
-
-        return current.getVarDef(name, start);
+        return findDeepestScope(start).getVarDef(name, start);
     }
 
     public List<String> getVarNames(Pos start) {
-        Scope current = globalScope;
-        boolean digging = true;
-
-        while (digging) {
-            Scope childScope = current.getChildren().stream()
-                    .filter(child -> start.isAfter(child.getStart()) && child.getEnd().isAfter(start))
-                    .findFirst()
-                    .orElse(null);
-
-            if (childScope != null) {
-                current = childScope;
-            } else {
-                digging = false;
-            }
-        }
-
-        return current.getVarNames(start);
+        return findDeepestScope(start).getAllVarNames(start);
     }
 }
