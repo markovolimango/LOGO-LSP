@@ -1,12 +1,12 @@
 package io.github.markovolimango.logo.analysis;
 
 import io.github.markovolimango.logo.lexer.Token;
-import io.github.markovolimango.logo.ast.ASTWalker;
+import io.github.markovolimango.logo.ast.AstWalker;
 import io.github.markovolimango.logo.ast.Node;
 
 import java.util.Stack;
 
-public class SymbolTableBuilder extends ASTWalker {
+public class SymbolTableBuilder extends AstWalker {
     private final Stack<Scope> scopeStack = new Stack<>();
     private Scope globalScope;
 

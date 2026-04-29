@@ -2,7 +2,7 @@ package io.github.markovolimango.logo.ast;
 
 import java.util.stream.Collectors;
 
-public class ASTPrinter extends ASTWalker {
+public class AstPrinter extends AstWalker {
     private int indentLevel = 0;
 
     public void print(Node node) {

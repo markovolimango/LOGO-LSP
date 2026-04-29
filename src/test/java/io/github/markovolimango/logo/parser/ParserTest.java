@@ -1,6 +1,6 @@
 package io.github.markovolimango.logo.parser;
 
-import io.github.markovolimango.logo.ast.ASTPrinter;
+import io.github.markovolimango.logo.ast.AstPrinter;
 import io.github.markovolimango.logo.ast.Node;
 import io.github.markovolimango.logo.lexer.Lexer;
 import io.github.markovolimango.logo.lexer.Token;
@@ -375,7 +375,7 @@ class ParserTest {
     void comment_doesNotProduceNode() {
         // Assumes ; starts a line comment — adjust if your lexer uses a different convention
         Node.Program program = parseProgram("; this is a comment\nforward 50");
-        new ASTPrinter().print(program);
+        new AstPrinter().print(program);
         assertEquals(1, program.body().size());
         assertInstanceOf(Node.ProcCall.class, program.body().getFirst());
     }

@@ -1,10 +1,29 @@
-package io.github.markovolimango.logo.parser;
+package io.github.markovolimango.logo;
+
+import io.github.markovolimango.logo.lexer.Token;
 
 import java.util.Map;
 
 import static java.util.Map.entry;
 
-public final class LogoGrammar {
+public final class LogoLanguage {
+    private static final Map<String, Token.Type> KEYWORDS = Map.ofEntries(
+            Map.entry("to", Token.Type.TO),
+            Map.entry("end", Token.Type.END),
+            Map.entry("define", Token.Type.DEFINE),
+
+            Map.entry("make", Token.Type.MAKE),
+            Map.entry("localmake", Token.Type.LOCALMAKE),
+            Map.entry("name", Token.Type.NAME),
+
+            Map.entry("output", Token.Type.OUTPUT),
+            Map.entry("op", Token.Type.OUTPUT),
+
+            Map.entry("and", Token.Type.OPERATOR),
+            Map.entry("or", Token.Type.OPERATOR),
+            Map.entry("not", Token.Type.OPERATOR)
+    );
+
     private static final Map<String, Integer> BUILTIN_ARITY = Map.<String, Integer>ofEntries(
             // Turtle motion
             entry("forward", 1), entry("fd", 1),
@@ -140,15 +159,23 @@ public final class LogoGrammar {
             "-", 70    // unary minus binds very tight
     );
 
+    public static Token.Type getTokenType(String keyword) {
+        return KEYWORDS.get(keyword.toLowerCase());
+    }
+
     public static Integer getArity(String procName) {
-        return BUILTIN_ARITY.get(procName);
+        return BUILTIN_ARITY.get(procName.toLowerCase());
     }
 
     public static int[] getInfixBP(String operator) {
-        return INFIX_BP.get(operator);
+        return INFIX_BP.get(operator.toLowerCase());
     }
 
     public static Integer getPrefixBP(String operator) {
-        return PREFIX_BP.get(operator);
+        return PREFIX_BP.get(operator.toLowerCase());
+    }
+
+    public static boolean isBuiltin(String procName) {
+        return BUILTIN_ARITY.containsKey(procName.toLowerCase());
     }
 }

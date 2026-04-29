@@ -1,13 +1,15 @@
 package io.github.markovolimango.logo.lexer;
 
+import io.github.markovolimango.logo.LogoLanguage;
+
 import java.util.ArrayList;
 import java.util.List;
 
 public class Lexer {
     private final String source;
     private final ArrayList<Token> tokens = new ArrayList<>();
-    private Pos curr = new Pos(0, 0, 0);
-    private Pos start;
+    private Pos currPos = new Pos(0, 0), startPos;
+    private int currOffs = 0, startOffs;
 
     public Lexer(String source) {
         this.source = source + "\0\0";
@@ -37,27 +39,28 @@ public class Lexer {
     }
 
     public List<Token> tokenize() {
-        while (curr.offs() < source.length() - 2) {
-            start = curr;
+        while (currOffs < source.length() - 2) {
+            startPos = currPos;
+            startOffs = currOffs;
             char c = consume();
             switch (c) {
                 case ' ', '\t' -> {
                 }
-                case '\n' -> curr = curr.nextLine();
+                case '\n' -> currPos = currPos.nextLine();
                 case '\r' -> {
-                    if (peek() != '\n') curr = curr.nextLine();
+                    if (peek() != '\n') currPos = currPos.nextLine();
                 }
                 case '"' -> {
                     while (isWordChar(peek())) consume();
-                    addToken(Token.Type.WORD, start.offs() + 1);
+                    addToken(Token.Type.WORD, startOffs + 1);
                 }
                 case ':' -> {
                     while (isNotDelimiter(peek())) consume();
-                    addToken(Token.Type.VARREF, start.offs() + 1);
+                    addToken(Token.Type.VARREF, startOffs + 1);
                 }
                 case ';' -> {
                     while (peek() != '\n' && peek() != '\r' && peek() != '\0') consume();
-                    addToken(Token.Type.COMMENT, start.offs() + 1);
+                    addToken(Token.Type.COMMENT, startOffs + 1);
                 }
                 case '[' -> addToken(Token.Type.LBRACKET);
                 case ']' -> addToken(Token.Type.RBRACKET);
@@ -70,9 +73,10 @@ public class Lexer {
                 }
                 default -> {
                     while (isNotDelimiter(peek())) consume();
-                    String text = source.substring(start.offs(), curr.offs());
-                    if (Keywords.map.containsKey(text.toLowerCase()))
-                        addToken(Keywords.map.get(text.toLowerCase()));
+                    String text = source.substring(startOffs, currOffs);
+                    var type = LogoLanguage.getTokenType(text);
+                    if (type != null)
+                        addToken(type);
                     else if (isNumber(text))
                         addToken(Token.Type.NUMBER);
                     else
@@ -81,25 +85,26 @@ public class Lexer {
 
             }
         }
-        tokens.add(new Token(Token.Type.EOF, "", curr.nextLine(), curr.nextLine()));
+        tokens.add(new Token(Token.Type.EOF, "", currPos.nextLine(), currPos.nextLine()));
         return tokens;
     }
 
     private char peek() {
-        return source.charAt(curr.offs());
+        return source.charAt(currOffs);
     }
 
     private char consume() {
-        char c = source.charAt(curr.offs());
-        curr = curr.nextCol();
+        char c = source.charAt(currOffs);
+        currPos = currPos.nextCol();
+        currOffs++;
         return c;
     }
 
     private void addToken(Token.Type type) {
-        tokens.add(new Token(type, source.substring(start.offs(), curr.offs()), start, curr));
+        tokens.add(new Token(type, source.substring(startOffs, currOffs), startPos, currPos));
     }
 
     private void addToken(Token.Type type, int textStartOffs) {
-        tokens.add(new Token(type, source.substring(textStartOffs, curr.offs()), start, curr));
+        tokens.add(new Token(type, source.substring(textStartOffs, currOffs), startPos, currPos));
     }
 }

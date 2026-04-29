@@ -28,18 +28,16 @@ class LexerTest {
 
     @Test
     void position_nextCol_incrementsOffsAndCol() {
-        Pos p = new Pos(5, 2, 3);
+        Pos p = new Pos(2, 3);
         Pos next = p.nextCol();
-        assertEquals(6, next.offs());
         assertEquals(2, next.line());
         assertEquals(4, next.col());
     }
 
     @Test
     void position_nextLine_incrementsLineResetsCol() {
-        Pos p = new Pos(5, 2, 7);
+        Pos p = new Pos(2, 7);
         Pos next = p.nextLine();
-        assertEquals(5, next.offs());
         assertEquals(3, next.line());
         assertEquals(0, next.col());
     }
@@ -286,7 +284,6 @@ class LexerTest {
     @Test
     void position_singleTokenStartsAtOrigin() {
         Token t = only("forward");
-        assertEquals(0, t.start().offs());
         assertEquals(0, t.start().line());
         assertEquals(0, t.start().col());
     }
@@ -310,7 +307,6 @@ class LexerTest {
     @Test
     void position_endFollowsStart() {
         Token t = only("forward");
-        assertTrue(t.end().offs() > t.start().offs());
         assertEquals(t.start().line(), t.end().line());
         assertEquals(t.start().col() + t.text().length(), t.end().col());
     }
@@ -318,8 +314,8 @@ class LexerTest {
     @Test
     void position_varrefStartPointsAtColon_endPointsPastName() {
         Token t = only(":speed");
-        assertEquals(0, t.start().offs()); // start is at ':'
-        assertEquals(6, t.end().offs());   // end is past 'speed'
+        assertEquals(0, t.start().col()); // start is at ':'
+        assertEquals(6, t.end().col());   // end is past 'speed'
         assertEquals("speed", t.text());   // but text excludes ':'
     }
 

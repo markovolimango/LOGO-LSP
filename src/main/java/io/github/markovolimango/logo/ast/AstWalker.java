@@ -1,6 +1,6 @@
 package io.github.markovolimango.logo.ast;
 
-public class ASTWalker {
+public class AstWalker {
     public void walk(Node node) {
         switch (node) {
             case Node.Program p -> p.body().forEach(this::walk);
@@ -26,11 +26,7 @@ public class ASTWalker {
             }
             case Node.PrefixExpr e -> walk(e.operand());
             case Node.Block b -> b.body().forEach(this::walk);
-            case Node.Number n -> {
-            }
-            case Node.Word w -> {
-            }
-            case Node.VarRef v -> {
+            case Node.Number _, Node.Word _, Node.VarRef _ -> {
             }
         }
     }

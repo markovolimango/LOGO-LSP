@@ -1,11 +1,10 @@
 package io.github.markovolimango.logo.lsp;
 
-import org.eclipse.lsp4j.InitializeParams;
-import org.eclipse.lsp4j.InitializeResult;
-import org.eclipse.lsp4j.ServerCapabilities;
-import org.eclipse.lsp4j.TextDocumentSyncKind;
+import io.github.markovolimango.logo.analysis.features.SemanticTokensProvider;
+import org.eclipse.lsp4j.*;
 import org.eclipse.lsp4j.services.*;
 
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 public class LogoLanguageServer implements LanguageServer, LanguageClientAware {
@@ -30,6 +29,14 @@ public class LogoLanguageServer implements LanguageServer, LanguageClientAware {
         capabilities.setTextDocumentSync(TextDocumentSyncKind.Full);
 
         capabilities.setDefinitionProvider(true);
+        capabilities.setDeclarationProvider(true);
+        SemanticTokensLegend legend = new SemanticTokensLegend(
+                SemanticTokensProvider.TOKEN_TYPES,
+                List.of()
+        );
+        SemanticTokensWithRegistrationOptions options = new SemanticTokensWithRegistrationOptions(legend);
+        options.setFull(true);
+        capabilities.setSemanticTokensProvider(options);
 
         InitializeResult result = new InitializeResult(capabilities);
         return CompletableFuture.completedFuture(result);

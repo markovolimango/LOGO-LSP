@@ -11,14 +11,14 @@ import java.util.List;
 
 public class DocumentState {
     private final String uri;
-    private final String text;
+    private final String[] lines;
     private final Node.Program ast;
     private final List<ParseError> errors;
     private final SymbolTable symTable;
 
     public DocumentState(String uri, String text) {
         this.uri = uri;
-        this.text = text;
+        this.lines = text.split("\n", -1);
         var tokens = new Lexer(text).tokenize();
         Parser parser = new Parser(tokens);
         this.ast = parser.parseProgram();
@@ -30,8 +30,8 @@ public class DocumentState {
         return uri;
     }
 
-    public String getText() {
-        return text;
+    public String getLine(int line) {
+        return lines[line];
     }
 
     public Node.Program getAst() {

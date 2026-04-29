@@ -1,5 +1,6 @@
 package io.github.markovolimango.logo.parser;
 
+import io.github.markovolimango.logo.LogoLanguage;
 import io.github.markovolimango.logo.ast.Node;
 import io.github.markovolimango.logo.lexer.Pos;
 import io.github.markovolimango.logo.lexer.Token;
@@ -30,7 +31,7 @@ public class Parser {
         while (peek().type() != Token.Type.EOF)
             body.add(parseExpr());
         if (body.isEmpty())
-            return new Node.Program(body, new Pos(0, 0, 0), new Pos(0, 0, 0));
+            return new Node.Program(body, new Pos(0, 0), new Pos(0, 0));
         return new Node.Program(body, body.getFirst().start(), body.getLast().end());
     }
 
@@ -132,7 +133,7 @@ public class Parser {
         Node left = parseNud();
         while (true) {
             Token op = peek();
-            int[] bp = LogoGrammar.getInfixBP(op.text());
+            int[] bp = LogoLanguage.getInfixBP(op.text());
             if (bp == null || bp[0] <= minBP) break;
 
             consume();
@@ -166,7 +167,7 @@ public class Parser {
             }
             case OPERATOR -> {
                 consume();
-                Integer rbp = LogoGrammar.getPrefixBP(t.text());
+                Integer rbp = LogoLanguage.getPrefixBP(t.text());
                 if (rbp == null) {
                     errors.add(new ParseError("Operator '" + t.text() + "' cannot appear in prefix position", t.start(), t.end()));
                     rbp = 70; // placeholder to keep on parsing
@@ -224,7 +225,7 @@ public class Parser {
     }
 
     private Integer getProcArity(String name) {
-        var arity = LogoGrammar.getArity(name);
+        var arity = LogoLanguage.getArity(name);
         if (arity == null) arity = userDefinedArity.get(name);
         return arity;
     }
