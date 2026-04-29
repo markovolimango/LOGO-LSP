@@ -42,9 +42,11 @@ public final class SemanticTokensProvider {
                 case COMMENT -> TYPE_COMMENT;
                 case EOF -> null;
             };
-            Integer smeanticModifier = switch (t.type()) {
+            if (semanticType == null) continue;
+
+            Integer semanticModifier = switch (t.type()) {
                 case PROC, DEFINE, MAKE, LOCALMAKE, NAME, OUTPUT ->
-                        LogoLanguage.isBuiltin(t.text()) ? MOD_NONE : MOD_DEFAULT_LIB;
+                        LogoLanguage.isBuiltin(t.text()) ? MOD_DEFAULT_LIB : MOD_NONE;
                 default -> MOD_NONE;
             };
 
@@ -52,7 +54,10 @@ public final class SemanticTokensProvider {
             result.add(line == prevLine ? col - prevCol : col);
             result.add(t.end().col() - t.start().col());
             result.add(semanticType);
-            result.add(smeanticModifier);
+            result.add(semanticModifier);
+
+            prevLine = line;
+            prevCol = col;
         }
         return new SemanticTokens(result);
     }

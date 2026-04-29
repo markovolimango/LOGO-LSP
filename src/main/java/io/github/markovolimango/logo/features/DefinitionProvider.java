@@ -1,12 +1,13 @@
 package io.github.markovolimango.logo.features;
 
-import io.github.markovolimango.logo.analysis.Symbol;
 import io.github.markovolimango.logo.lexer.Lexer;
 import io.github.markovolimango.logo.lexer.Pos;
 import io.github.markovolimango.logo.lsp.DocumentState;
+import io.github.markovolimango.logo.lsp.LspConverter;
+import org.eclipse.lsp4j.Location;
 
 public class DefinitionProvider {
-    public static Symbol findDefinition(DocumentState state, Pos pos) {
+    public static Location findDefinition(DocumentState state, Pos pos) {
         String line = state.getLine(pos.line());
         int start = pos.col(), end = pos.col();
 
@@ -19,6 +20,8 @@ public class DefinitionProvider {
         String name = (start == end) ? null : line.substring(start, end);
         if (name == null) return null;
         var symTable = state.getSymTable();
-        return isVar ? symTable.getVarDef(name, pos) : symTable.getProcDef(name, pos);
+        var sym = isVar ? symTable.getVarDef(name, pos) : symTable.getProcDef(name, pos);
+        if (sym == null) return null;
+        return new Location(state.getUri(), LspConverter.toRange(sym.start(), sym.end()));
     }
 }

@@ -1,6 +1,5 @@
 package io.github.markovolimango.logo.lsp;
 
-import io.github.markovolimango.logo.analysis.Symbol;
 import io.github.markovolimango.logo.features.DefinitionProvider;
 import io.github.markovolimango.logo.features.SemanticTokensProvider;
 import io.github.markovolimango.logo.lexer.Pos;
@@ -59,9 +58,8 @@ public class LogoTextDocumentService implements TextDocumentService {
         DocumentState state = documents.get(uri);
         if (state == null) return CompletableFuture.completedFuture(Either.forLeft(List.of()));
         return CompletableFuture.supplyAsync(() -> {
-            Symbol sym = DefinitionProvider.findDefinition(state, cursor);
-            if (sym == null) return Either.forLeft(List.of());
-            Location loc = new Location(uri, LspConverter.toRange(sym.start(), sym.end()));
+            Location loc = DefinitionProvider.findDefinition(state, cursor);
+            if (loc == null) return Either.forLeft(List.of());
             return Either.forLeft(List.of(loc));
         });
     }
@@ -73,9 +71,8 @@ public class LogoTextDocumentService implements TextDocumentService {
         DocumentState state = documents.get(uri);
         if (state == null) return CompletableFuture.completedFuture(Either.forLeft(List.of()));
         return CompletableFuture.supplyAsync(() -> {
-            Symbol sym = DefinitionProvider.findDefinition(state, cursor);
-            if (sym == null) return Either.forLeft(List.of());
-            Location loc = new Location(uri, LspConverter.toRange(sym.start(), sym.end()));
+            Location loc = DefinitionProvider.findDefinition(state, cursor);
+            if (loc == null) return Either.forLeft(List.of());
             return Either.forLeft(List.of(loc));
         });
     }
