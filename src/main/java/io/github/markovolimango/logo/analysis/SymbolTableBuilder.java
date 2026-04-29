@@ -18,7 +18,7 @@ public class SymbolTableBuilder extends AstWalker {
                 scopeStack.push(new Scope(currentScope(), n.start(), n.end()));
                 for (Token param : n.params())
                     currentScope().addDefinition(new Symbol.Var(param.text(), param.start(), param.end()));
-                super.walk(n);
+                n.body().forEach(this::walk);
                 scopeStack.pop();
             }
             case Node.DefineStmt n -> {
