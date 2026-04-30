@@ -379,6 +379,7 @@ class ParserTest {
         // If we put it in a block, maybe we can see it failing inside but continuing after
         Parser parser = new Parser(new Lexer("[ forward ] back 10").getTokens());
         Node.Program program = parser.parseProgram();
+        new AstPrinter().print(program);
 
         boolean foundBack = program.body().stream()
                 .anyMatch(n -> n instanceof Node.ProcCall pc && pc.name().text().equalsIgnoreCase("back"));
@@ -397,6 +398,36 @@ class ParserTest {
     // =========================================================================
     // Comments (should be silently skipped)
     // =========================================================================
+
+    @Test
+    void trailingComment_doesNotInfiniteLoop() {
+        assertTimeoutPreemptively(java.time.Duration.ofMillis(500), () -> {
+            parseProgram("forward 50 ; trailing comment");
+        });
+    }
+
+    @Test
+    void unexpectedTokenInBlock_doesNotInfiniteLoop() {
+        assertTimeoutPreemptively(java.time.Duration.ofMillis(500), () -> {
+            parseProgram("[ make output ]");
+        });
+    }
+
+    @Test
+    void unexpectedTokenAtTopLevel_doesNotInfiniteLoop() {
+        assertTimeoutPreemptively(java.time.Duration.ofMillis(500), () -> {
+            // ']' at top level is unexpected and might not be consumed
+            parseProgram("]");
+        });
+    }
+
+    @Test
+    void unclosedGreedyProcCall_doesNotInfiniteLoop() {
+        assertTimeoutPreemptively(java.time.Duration.ofMillis(500), () -> {
+            // (proc ...   with no closing ')' triggers greedy mode
+            parseProgram("(list 1 2");
+        });
+    }
 
     private record ParseResult(Node.Program program, Parser parser) {
         List<ParseError> errors() {

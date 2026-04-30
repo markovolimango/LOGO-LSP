@@ -11,8 +11,6 @@ to draw :size :color
     ]
 end
 
-(print "mare mdma 2 3 4 )
-
 define "dudu [[n "mare sum 2 3] print :n]
 
 make "size 100

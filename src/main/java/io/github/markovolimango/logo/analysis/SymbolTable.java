@@ -27,7 +27,7 @@ public class SymbolTable {
                     .filter(child -> start.isAfter(child.getStart()) && child.getEnd().isAfter(start))
                     .findFirst()
                     .orElse(null);
-            if (childScope != null)
+            if (childScope != null && childScope != current)
                 current = childScope;
             else
                 digging = false;

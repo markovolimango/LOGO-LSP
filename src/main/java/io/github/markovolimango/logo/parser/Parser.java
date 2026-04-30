@@ -27,8 +27,11 @@ public class Parser {
 
     public Node.Program parseProgram() {
         var body = new ArrayList<Node>();
-        while (peek().type() != Token.Type.EOF)
+        while (peek().type() != Token.Type.EOF) {
+            int startPos = pos;
             body.add(parseExpr());
+            if (pos == startPos) consume();
+        }
         if (body.isEmpty())
             return new Node.Program(body, new Pos(0, 0), new Pos(0, 0));
         return new Node.Program(body, body.getFirst().start(), body.getLast().end());
@@ -72,8 +75,11 @@ public class Parser {
         while (peek().type() == Token.Type.VARREF)
             params.add(consume());
         userDefinedArity.put(name.text(), params.size());
-        while (peek().type() != Token.Type.EOF && peek().type() != Token.Type.END)
+        while (peek().type() != Token.Type.EOF && peek().type() != Token.Type.END) {
+            int startPos = pos;
             body.add(parseExpr());
+            if (pos == startPos) consume();
+        }
         Token endToken = expect(Token.Type.END);
         return new Node.ToStmt(name, params, body, toToken.start(), endToken.end());
     }
@@ -123,7 +129,7 @@ public class Parser {
         }
 
         var args = new ArrayList<Node>(Math.max(0, arity));
-        while (isGreedy ? peek().type() != Token.Type.RPAREN : arity-- > 0)
+        while (isGreedy ? (peek().type() != Token.Type.RPAREN && peek().type() != Token.Type.EOF) : arity-- > 0)
             args.add(parseExpr());
 
         return new Node.ProcCall(name, args, name.start(), args.isEmpty() ? name.end() : args.getLast().end());
@@ -132,8 +138,11 @@ public class Parser {
     public Node.Block parseBlock() {
         Token lbracket = expect(Token.Type.LBRACKET);
         var body = new ArrayList<Node>();
-        while (peek().type() != Token.Type.RBRACKET && peek().type() != Token.Type.EOF)
+        while (peek().type() != Token.Type.RBRACKET && peek().type() != Token.Type.EOF) {
+            int startPos = pos;
             body.add(parseExpr());
+            if (pos == startPos) consume();
+        }
         Token rbracket = expect(Token.Type.RBRACKET);
         return new Node.Block(body, lbracket.start(), rbracket.end());
     }
@@ -218,10 +227,25 @@ public class Parser {
     }
 
     private Token peek() {
+        if (pos >= tokens.size()) {
+            return getEofToken();
+        }
         Token t = tokens.get(pos);
-        while (t.type() == Token.Type.COMMENT)
-            t = tokens.get(++pos);
+        while (t.type() == Token.Type.COMMENT) {
+            pos++;
+            if (pos >= tokens.size()) return getEofToken();
+            t = tokens.get(pos);
+        }
         return t;
+    }
+
+    private Token getEofToken() {
+        if (tokens.isEmpty()) {
+            return new Token(Token.Type.EOF, "", new Pos(0, 0), new Pos(0, 0));
+        }
+        Token last = tokens.get(tokens.size() - 1);
+        if (last.type() == Token.Type.EOF) return last;
+        return new Token(Token.Type.EOF, "", last.end(), last.end());
     }
 
     private Token consume() {
