@@ -10,6 +10,7 @@ public class Lexer {
     private final ArrayList<Token> tokens = new ArrayList<>();
     private Pos currPos = new Pos(0, 0), startPos;
     private int currOffs = 0, startOffs;
+    private boolean isInsideTo = false;
 
     public Lexer(String source) {
         this.source = source + "\0\0";
@@ -83,9 +84,11 @@ public class Lexer {
                     while (isNotDelimiter(peek())) consume();
                     String text = source.substring(startOffs, currOffs);
                     var type = LogoLanguage.getTokenType(text);
-                    if (type != null)
+                    if (type != null && (type != Token.Type.TO || !isInsideTo)) {
                         addToken(type);
-                    else if (isNumber(text))
+                        if (type == Token.Type.TO) isInsideTo = true;
+                        else if (type == Token.Type.END) isInsideTo = false;
+                    } else if (isNumber(text))
                         addToken(Token.Type.NUMBER);
                     else
                         addToken(Token.Type.PROC);
