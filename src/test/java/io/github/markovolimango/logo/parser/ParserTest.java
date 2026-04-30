@@ -15,7 +15,7 @@ class ParserTest {
     // -------------------------------------------------------------------------
 
     private ParseResult parse(String source) {
-        List<Token> tokens = new Lexer(source).tokenize();
+        List<Token> tokens = new Lexer(source).getTokens();
         Parser parser = new Parser(tokens);
         Node.Program program = parser.parseProgram();
         return new ParseResult(program, parser);
@@ -398,7 +398,7 @@ class ParserTest {
     void recovery_missingArgumentDoesNotBlockNextStatement() {
         // [ forward ] back 10
         // If we put it in a block, maybe we can see it failing inside but continuing after
-        Parser parser = new Parser(new Lexer("[ forward ] back 10").tokenize());
+        Parser parser = new Parser(new Lexer("[ forward ] back 10").getTokens());
         Node.Program program = parser.parseProgram();
 
         boolean foundBack = program.body().stream()

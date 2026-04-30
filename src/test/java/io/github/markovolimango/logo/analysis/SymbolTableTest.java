@@ -12,7 +12,7 @@ import static org.junit.jupiter.api.Assertions.*;
 class SymbolTableTest {
 
     private SymbolTable buildTable(String source) {
-        var tokens = new Lexer(source).tokenize();
+        var tokens = new Lexer(source).getTokens();
         var program = new Parser(tokens).parseProgram();
         return new SymbolTableBuilder().build(program);
     }

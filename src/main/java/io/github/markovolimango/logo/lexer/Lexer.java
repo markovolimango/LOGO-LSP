@@ -14,6 +14,7 @@ public class Lexer {
 
     public Lexer(String source) {
         this.source = source + "\0\0";
+        tokenize();
     }
 
     static private boolean isWordChar(char c) {
@@ -39,28 +40,35 @@ public class Lexer {
         return s[i - 1] >= '0' && '9' >= s[i - 1];
     }
 
-    public static Token recoverTokenAt(String line, int col) {
-        var lineTokens = new Lexer(line).tokenize();
-        for (var token : lineTokens)
-            if (token.start().col() <= col && col <= token.end().col())
-                return token;
-        return new Token(Token.Type.EOF, "", new Pos(0, 0), new Pos(0, 0));
+    public List<Token> getTokens() {
+        return tokens;
     }
 
-    public static boolean isDefineParamAt(int i, List<Token> tokens) {
+    public Token getTokenAt(Pos pos) {
+        return tokens.get(getIndexFromPos(pos));
+    }
+
+    public int getIndexFromPos(Pos pos) {
+        for (int i = 0; i < tokens.size(); i++)
+            if (!tokens.get(i).start().isAfter(pos)) return i;
+        return tokens.size() - 1;
+    }
+
+    public boolean isDefineParam(Token token) {
+        int index = getIndexFromPos(token.start());
         if (tokens.getFirst().type() != Token.Type.DEFINE) return false;
         int j = 0;
         while (j < tokens.size() && tokens.get(j).type() != Token.Type.LBRACKET) j++;
         if (j >= tokens.size() - 2) return false;
-        if (i == j + 1) return true;
+        if (index == j + 1) return true;
         if (tokens.get(j + 1).type() != Token.Type.LBRACKET) return false;
         j++;
         while (j < tokens.size() && tokens.get(j).type() != Token.Type.RBRACKET)
-            if (i == j++) return true;
+            if (index == j++) return true;
         return false;
     }
 
-    public List<Token> tokenize() {
+    private void tokenize() {
         while (currOffs < source.length() - 2) {
             startPos = currPos;
             startOffs = currOffs;
@@ -110,7 +118,6 @@ public class Lexer {
             }
         }
         tokens.add(new Token(Token.Type.EOF, "", currPos.nextLine(), currPos.nextLine()));
-        return tokens;
     }
 
     private char peek() {

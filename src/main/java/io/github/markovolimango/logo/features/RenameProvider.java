@@ -3,7 +3,6 @@ package io.github.markovolimango.logo.features;
 import io.github.markovolimango.logo.analysis.Symbol;
 import io.github.markovolimango.logo.lexer.Lexer;
 import io.github.markovolimango.logo.lexer.Pos;
-import io.github.markovolimango.logo.lexer.Token;
 import io.github.markovolimango.logo.lsp.DocumentState;
 import io.github.markovolimango.logo.lsp.LspConverter;
 import org.eclipse.lsp4j.TextEdit;
@@ -13,16 +12,13 @@ import java.util.List;
 
 public class RenameProvider {
     public static List<TextEdit> getRenameEdits(DocumentState state, Pos pos, String newName) {
-        var tokens = new Lexer(state.getLine(pos.line())).tokenize();
-        int i = 0;
-        while (tokens.get(i).start().col() <= pos.col()) i++;
-        i--;
-        Token token = tokens.get(i);
+        var lexer = new Lexer(state.getLine(pos.line()));
+        var token = lexer.getTokenAt(new Pos(0, pos.col()));
 
         Symbol sym = switch (token.type()) {
             case VARREF -> state.getSymTable().getVarDef(token.text(), pos);
             case PROC -> {
-                if (Lexer.isDefineParamAt(i, tokens))
+                if (lexer.isDefineParam(token))
                     yield state.getSymTable().getVarDef(token.text(), pos);
                 yield state.getSymTable().getProcDef(token.text(), pos);
             }

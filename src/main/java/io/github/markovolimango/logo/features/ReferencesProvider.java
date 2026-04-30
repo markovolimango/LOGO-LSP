@@ -12,18 +12,17 @@ import java.util.List;
 
 public class ReferencesProvider {
     public static List<Location> findReferences(DocumentState state, Pos pos) {
-        var tokens = new Lexer(state.getLine(pos.line())).tokenize();
-        int i = 0;
-        while (tokens.get(i).start().col() <= pos.col()) i++;
-        i--;
-        Token token = tokens.get(i);
+        var lexer = new Lexer(state.getLine(pos.line()));
+        var tokens = lexer.getTokens();
+        var i = lexer.getIndexFromPos(pos);
+        var token = lexer.getTokenAt(new Pos(0, pos.col()));
 
         List<Location> locations = new ArrayList<>();
         var symTable = state.getSymTable();
         List<Pos[]> refs = switch (token.type()) {
             case VARREF -> symTable.getVarRefs(token.text(), pos);
             case PROC -> {
-                if (Lexer.isDefineParamAt(i, tokens))
+                if (lexer.isDefineParam(token))
                     yield symTable.getVarRefs(token.text(), pos);
                 yield symTable.getProcRefs(token.text(), pos);
             }

@@ -22,7 +22,7 @@ public class DocumentState {
     public DocumentState(String uri, String text) {
         this.uri = uri;
         this.lines = text.split("\n", -1);
-        tokens = new Lexer(text).tokenize();
+        tokens = new Lexer(text).getTokens();
         Parser parser = new Parser(tokens);
         this.ast = parser.parseProgram();
         this.errors = parser.getErrors();
