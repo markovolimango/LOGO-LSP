@@ -1,26 +1,22 @@
 package io.github.markovolimango.logo.features;
 
+import io.github.markovolimango.logo.analysis.Symbol;
 import io.github.markovolimango.logo.lexer.Lexer;
 import io.github.markovolimango.logo.lexer.Pos;
+import io.github.markovolimango.logo.lexer.Token;
 import io.github.markovolimango.logo.lsp.DocumentState;
 import io.github.markovolimango.logo.lsp.LspConverter;
 import org.eclipse.lsp4j.Location;
 
 public class DefinitionProvider {
     public static Location findDefinition(DocumentState state, Pos pos) {
-        String line = state.getLine(pos.line());
-        int start = pos.col(), end = pos.col();
-
-        while (start > 0 && Lexer.isNotDelimiter(line.charAt(start - 1)) && line.charAt(start - 1) != ':')
-            start--;
-        while (end < line.length() && Lexer.isNotDelimiter(line.charAt(end)))
-            end++;
-
-        boolean isVar = start - 1 >= 0 && line.charAt(start - 1) == ':';
-        String name = (start == end) ? null : line.substring(start, end);
-        if (name == null) return null;
+        Token token = Lexer.recoverTokenAt(state.getLine(pos.line()), pos.col());
         var symTable = state.getSymTable();
-        var sym = isVar ? symTable.getVarDef(name, pos) : symTable.getProcDef(name, pos);
+        Symbol sym = switch (token.type()) {
+            case VARREF -> symTable.getVarDef(token.text(), pos);
+            case PROC -> symTable.getProcDef(token.text(), pos);
+            default -> null;
+        };
         if (sym == null) return null;
         return new Location(state.getUri(), LspConverter.toRange(sym.getStart(), sym.getEnd()));
     }

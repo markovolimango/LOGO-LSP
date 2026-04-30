@@ -7,6 +7,7 @@ import org.eclipse.lsp4j.jsonrpc.messages.Either;
 import org.eclipse.lsp4j.services.LanguageClient;
 import org.eclipse.lsp4j.services.TextDocumentService;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.*;
@@ -115,7 +116,20 @@ public class LogoTextDocumentService implements TextDocumentService {
     public CompletableFuture<List<? extends Location>> references(ReferenceParams params) {
         var state = documents.get(params.getTextDocument().getUri());
         var cursor = LspConverter.fromPosition(params.getPosition());
-        if (state == null) return CompletableFuture.completedFuture(List.of());
+        if (state == null) return CompletableFuture.completedFuture(null);
         return CompletableFuture.supplyAsync(() -> ReferencesProvider.findReferences(state, cursor));
+    }
+
+    @Override
+    public CompletableFuture<WorkspaceEdit> rename(RenameParams params) {
+        var state = documents.get(params.getTextDocument().getUri());
+        var cursor = LspConverter.fromPosition(params.getPosition());
+        if (state == null) return CompletableFuture.completedFuture(null);
+        return CompletableFuture.supplyAsync(() -> {
+            var edits = RenameProvider.getRenameEdits(state, cursor, params.getNewName());
+            Map<String, List<TextEdit>> editMap = new HashMap<>();
+            editMap.put(params.getTextDocument().getUri(), edits);
+            return new WorkspaceEdit(editMap);
+        });
     }
 }

@@ -38,6 +38,14 @@ public class Lexer {
         return s[i - 1] >= '0' && '9' >= s[i - 1];
     }
 
+    public static Token recoverTokenAt(String line, int col) {
+        var lineTokens = new Lexer(line).tokenize();
+        for (var token : lineTokens)
+            if (token.start().col() <= col && col <= token.end().col())
+                return token;
+        return new Token(Token.Type.EOF, "", new Pos(0, 0), new Pos(0, 0));
+    }
+
     public List<Token> tokenize() {
         while (currOffs < source.length() - 2) {
             startPos = currPos;

@@ -2,9 +2,10 @@ package io.github.markovolimango.logo.lsp;
 
 import io.github.markovolimango.logo.analysis.SymbolTable;
 import io.github.markovolimango.logo.analysis.SymbolTableBuilder;
-import io.github.markovolimango.logo.parser.Node;
 import io.github.markovolimango.logo.lexer.Lexer;
+import io.github.markovolimango.logo.lexer.Pos;
 import io.github.markovolimango.logo.lexer.Token;
+import io.github.markovolimango.logo.parser.Node;
 import io.github.markovolimango.logo.parser.ParseError;
 import io.github.markovolimango.logo.parser.Parser;
 
@@ -50,5 +51,9 @@ public class DocumentState {
 
     public SymbolTable getSymTable() {
         return symTable;
+    }
+
+    public char getCharAt(Pos pos) {
+        return lines[pos.line()].charAt(pos.col());
     }
 }

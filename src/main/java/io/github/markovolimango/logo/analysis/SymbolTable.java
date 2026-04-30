@@ -44,10 +44,14 @@ public class SymbolTable {
     }
 
     public List<Pos[]> getVarRefs(String name, Pos start) {
-        return getVarDef(name, start).getReferences();
+        var def = getVarDef(name, start);
+        if (def == null) return null;
+        return def.getReferences();
     }
 
     public List<Pos[]> getProcRefs(String name, Pos start) {
-        return getProcDef(name, start).getReferences();
+        var def = getProcDef(name, start);
+        if (def == null) return null;
+        return def.getReferences();
     }
 }
