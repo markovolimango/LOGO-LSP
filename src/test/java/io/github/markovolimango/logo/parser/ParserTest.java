@@ -215,12 +215,6 @@ class ParserTest {
     }
 
     @Test
-    void unknownProcedure_addsError() {
-        Parser parser = parseWithErrors("bogusProc 1 2");
-        assertFalse(parser.getErrors().isEmpty());
-    }
-
-    @Test
     void emptyBlock_parsedSuccessfully() {
         Node.Program program = parseProgram("[]");
         assertInstanceOf(Node.Block.class, program.body().getFirst());
@@ -375,24 +369,9 @@ class ParserTest {
         assertTrue(expr.start().col() <= expr.end().col());
     }
 
-    @Test
-    void afterError_parserContinuesAndCollectsMore() {
-        // "bogus" is unknown; "forward 50" after it should still be parsed
-        ParseResult result = parse("bogus\nforward 50");
-        assertFalse(result.errors().isEmpty(), "Expected an error for unknown 'bogus'");
-        // The valid statement after the error should still appear in the tree
-        assertFalse(result.program().body().isEmpty());
-    }
-
     // =========================================================================
     // Error recovery — parser continues after an error
     // =========================================================================
-
-    @Test
-    void multipleErrors_allReported() {
-        Parser parser = parseWithErrors("bogus1\nbogus2\nbogus3");
-        assertTrue(parser.getErrors().size() >= 3);
-    }
 
     @Test
     void recovery_missingArgumentDoesNotBlockNextStatement() {

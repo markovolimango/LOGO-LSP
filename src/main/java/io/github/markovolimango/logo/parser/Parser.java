@@ -14,7 +14,7 @@ public class Parser {
     private final Map<String, Integer> userDefinedArity = new HashMap<>();
     private final List<ParseError> errors = new ArrayList<>();
     private int pos;
-    private Token lastConsumed;
+    private Token lastConsumed = new Token(Token.Type.EOF, "", new Pos(0, 0), new Pos(0, 0));
 
     public Parser(List<Token> tokens) {
         this.tokens = tokens;
@@ -114,6 +114,7 @@ public class Parser {
     }
 
     public Node.ProcCall parseProcCall() {
+        boolean isGreedy = lastConsumed.type() == Token.Type.LPAREN;
         Token name = consume();
         Integer arity = getProcArity(name.text());
         if (arity == null) {
@@ -122,17 +123,9 @@ public class Parser {
         }
 
         var args = new ArrayList<Node>(Math.max(0, arity));
-        if (arity >= 0) {
-            while (arity-- > 0)
-                args.add(parseExpr());
-        } else {
-            // Variadic, only allowed within parentheses which are handled in parseNud
-            // but we need to know if we are inside parentheses.
-            // Actually, we can just consume until RPAREN if we are variadic.
-            while (peek().type() != Token.Type.RPAREN && peek().type() != Token.Type.EOF) {
-                args.add(parseExpr());
-            }
-        }
+        while (isGreedy ? peek().type() != Token.Type.RPAREN : arity-- > 0)
+            args.add(parseExpr());
+
         return new Node.ProcCall(name, args, name.start(), args.isEmpty() ? name.end() : args.getLast().end());
     }
 

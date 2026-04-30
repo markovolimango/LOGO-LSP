@@ -24,7 +24,7 @@ class SymbolTableTest {
         // We look for it at "forward :x"
         Symbol.Var var = table.getVarDef("x", new Pos(1, 8));
         assertNotNull(var);
-        assertEquals("x", var.name());
+        assertEquals("x", var.getName());
     }
 
     @Test
@@ -60,7 +60,7 @@ class SymbolTableTest {
         Symbol.Var var = table.getVarDef("x", new Pos(3, 8));
         assertNotNull(var);
         // The local 'x' starts at line 2
-        assertEquals(2, var.start().line());
+        assertEquals(2, var.getStart().line());
     }
 
     @Test

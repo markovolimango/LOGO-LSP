@@ -11,10 +11,16 @@ to draw :size :color
     ]
 end
 
+(print "mare mdma 2 3 4 )
+
 define "dudu [[n "mare sum 2 3] print :n]
 
 make "size 100
 make "size 200
+
+to myproc :p
+    print :p
+end
 
 to size
     forward :size

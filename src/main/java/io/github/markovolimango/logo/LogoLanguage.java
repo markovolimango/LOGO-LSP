@@ -107,7 +107,7 @@ public final class LogoLanguage {
             entry("output", 1),
 
             // Lists
-            entry("list", -1), // variadic
+            entry("list", 2),
             entry("first", 1),
             entry("butfirst", 1),
             entry("last", 1),

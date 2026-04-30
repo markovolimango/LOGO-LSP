@@ -49,8 +49,11 @@ public class Lexer {
     }
 
     public int getIndexFromPos(Pos pos) {
-        for (int i = 0; i < tokens.size(); i++)
-            if (!tokens.get(i).start().isAfter(pos)) return i;
+        for (int i = 0; i < tokens.size(); i++) {
+            Token t = tokens.get(i);
+            if (!pos.isBefore(t.start()) && pos.isBefore(t.end()))
+                return i;
+        }
         return tokens.size() - 1;
     }
 
