@@ -28,8 +28,11 @@ public class LogoLanguageServer implements LanguageServer, LanguageClientAware {
 
         capabilities.setTextDocumentSync(TextDocumentSyncKind.Full);
 
+        capabilities.setDiagnosticProvider(new DiagnosticRegistrationOptions(false, false));
+
         capabilities.setDefinitionProvider(true);
         capabilities.setDeclarationProvider(true);
+        capabilities.setReferencesProvider(true);
 
         SemanticTokensLegend legend = new SemanticTokensLegend(
                 SemanticTokensProvider.TOKEN_TYPES,

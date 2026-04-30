@@ -22,15 +22,15 @@ public class Scope {
     }
 
     public void addDefinition(Symbol symbol) {
-        symbols.putIfAbsent(symbol.name(), new ArrayList<>());
-        symbols.get(symbol.name()).add(symbol);
+        symbols.putIfAbsent(symbol.getName(), new ArrayList<>());
+        symbols.get(symbol.getName()).add(symbol);
     }
 
     private Symbol getDef(String name, Pos start, Class<? extends Symbol> type) {
         var list = symbols.get(name);
         if (list != null)
             for (Symbol symbol : list.reversed())
-                if (symbol.getClass() == type && start.isAfter(symbol.end()))
+                if (symbol.getClass() == type && !start.isBefore(symbol.getStart()))
                     return symbol;
         return parent != null ? parent.getDef(name, start, type) : null;
     }
@@ -47,7 +47,7 @@ public class Scope {
         var res = parent != null ? parent.getAllNames(start, type) : new ArrayList<String>();
         symbols.forEach((name, symbol) -> {
             for (Symbol s : symbol)
-                if (s.getClass() == type && start.isAfter(s.end()))
+                if (s.getClass() == type && start.isAfter(s.getEnd()))
                     res.add(name);
         });
         return res;

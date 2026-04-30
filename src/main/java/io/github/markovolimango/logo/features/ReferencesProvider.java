@@ -6,8 +6,12 @@ import io.github.markovolimango.logo.lsp.DocumentState;
 import io.github.markovolimango.logo.lsp.LspConverter;
 import org.eclipse.lsp4j.Location;
 
-public class DefinitionProvider {
-    public static Location findDefinition(DocumentState state, Pos pos) {
+import java.util.ArrayList;
+import java.util.List;
+
+public class ReferencesProvider {
+    public static List<Location> findReferences(DocumentState state, Pos pos) {
+        List<Location> locations = new ArrayList<>();
         String line = state.getLine(pos.line());
         int start = pos.col(), end = pos.col();
 
@@ -20,8 +24,10 @@ public class DefinitionProvider {
         String name = (start == end) ? null : line.substring(start, end);
         if (name == null) return null;
         var symTable = state.getSymTable();
-        var sym = isVar ? symTable.getVarDef(name, pos) : symTable.getProcDef(name, pos);
-        if (sym == null) return null;
-        return new Location(state.getUri(), LspConverter.toRange(sym.getStart(), sym.getEnd()));
+        var refs = isVar ? symTable.getVarRefs(name, pos) : symTable.getProcRefs(name, pos);
+        for (var ref : refs) {
+            locations.add(new Location(state.getUri(), LspConverter.toRange(ref[0], ref[1])));
+        }
+        return locations;
     }
 }

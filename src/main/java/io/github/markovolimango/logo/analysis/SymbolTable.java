@@ -42,4 +42,12 @@ public class SymbolTable {
     public List<String> getVarNames(Pos start) {
         return findDeepestScope(start).getAllVarNames(start);
     }
+
+    public List<Pos[]> getVarRefs(String name, Pos start) {
+        return getVarDef(name, start).getReferences();
+    }
+
+    public List<Pos[]> getProcRefs(String name, Pos start) {
+        return getProcDef(name, start).getReferences();
+    }
 }

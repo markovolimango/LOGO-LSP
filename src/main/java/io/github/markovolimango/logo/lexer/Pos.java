@@ -15,4 +15,8 @@ public record Pos(
     public boolean isAfter(Pos other) {
         return line > other.line || (line == other.line && col > other.col);
     }
+
+    public boolean isBefore(Pos other) {
+        return line < other.line || (line == other.line && col < other.col);
+    }
 }
