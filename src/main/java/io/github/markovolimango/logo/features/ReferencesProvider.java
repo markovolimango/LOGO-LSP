@@ -18,6 +18,18 @@ public class ReferencesProvider {
         List<Pos[]> refs = switch (token.type()) {
             case VARREF -> symTable.getVarRefs(token.text(), pos);
             case PROC -> symTable.getProcRefs(token.text(), pos);
+            case WORD -> {
+                var tokens = new Lexer(state.getLine(pos.line())).tokenize();
+                System.err.println(tokens);
+                int i = 0;
+                while (tokens.get(i).start().col() <= pos.col()) i++;
+                i--;
+                if ((i > 0 && (tokens.get(i - 1).type() == Token.Type.MAKE
+                        || tokens.get(i - 1).type() == Token.Type.LOCALMAKE))
+                        || (i > 1 && tokens.get(i - 1).type() == Token.Type.NAME))
+                    yield symTable.getVarRefs(tokens.get(i).text(), pos);
+                yield List.of();
+            }
             default -> List.of();
         };
         for (var ref : refs)
