@@ -27,7 +27,7 @@ public class SymbolTableBuilder extends AstWalker {
                     globalScope.addDefinition(new Symbol.Proc(nameToken));
                 }
                 scopeStack.push(new Scope(currentScope(), n.start(), n.end()));
-                for (Node param : n.params().body()) {
+                for (Node param : n.params()) {
                     if (param instanceof Node.Word) {
                         Token paramToken = ((Node.Word) param).value();
                         currentScope().addDefinition(new Symbol.Var(paramToken));

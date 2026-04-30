@@ -7,7 +7,7 @@ public class AstWalker {
             case Node.ToStmt d -> d.body().forEach(this::walk);
             case Node.DefineStmt d -> {
                 walk(d.name());
-                walk(d.params());
+                d.params().forEach(this::walk);
                 walk(d.body());
             }
             case Node.ProcCall c -> c.args().forEach(this::walk);

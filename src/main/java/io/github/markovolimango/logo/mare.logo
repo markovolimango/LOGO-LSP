@@ -11,6 +11,8 @@ to draw :size :color
     ]
 end
 
+define "dudu [[n "mare sum 2 3] print :n]
+
 make "size 100
 make "size 200
 

@@ -28,7 +28,7 @@ public sealed interface Node {
     record ToStmt(Token name, List<Token> params, List<Node> body, Pos start, Pos end) implements Node {
     }
 
-    record DefineStmt(Node name, Block params, Block body, Pos start, Pos end) implements Node {
+    record DefineStmt(Node name, List<Node> params, Node body, Pos start, Pos end) implements Node {
     }
 
     record ProcCall(Token name, List<Node> args, Pos start, Pos end) implements Node {

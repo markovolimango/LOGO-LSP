@@ -1,5 +1,6 @@
 package io.github.markovolimango.logo.features;
 
+import io.github.markovolimango.logo.LogoLanguage;
 import io.github.markovolimango.logo.lexer.Pos;
 import io.github.markovolimango.logo.lexer.Token;
 import io.github.markovolimango.logo.lsp.DocumentState;
@@ -27,8 +28,10 @@ public class DiagnosticProvider {
     }
 
     private static class ErrorFinder extends AstWalker {
-        List<Diagnostic> errors = new ArrayList<>();
-        DocumentState state;
+        private final List<Diagnostic> errors = new ArrayList<>();
+        private final DocumentState state;
+        private boolean ignoreProcErrors = false;
+
 
         public ErrorFinder(DocumentState state) {
             this.state = state;
@@ -36,13 +39,33 @@ public class DiagnosticProvider {
 
         @Override
         public void walk(Node node) {
-            if (node instanceof Node.VarRef(Token name, Pos start, Pos end)) {
-                if (state.getSymTable().getVarDef(name.text(), start) == null)
-                    errors.add(new Diagnostic(
-                            LspConverter.toRange(start, end),
-                            "Undefined variable: " + name.text())
-                    );
-            } else super.walk(node);
+            switch (node) {
+                case Node.VarRef(Token name, Pos start, Pos end) -> {
+                    if (state.getSymTable().getVarDef(name.text(), start) == null)
+                        errors.add(new Diagnostic(
+                                LspConverter.toRange(start, end),
+                                "Undefined variable: " + name.text())
+                        );
+                }
+                case Node.ProcCall pc -> {
+                    var sym = state.getSymTable().getProcDef(pc.name().text(), pc.name().start());
+                    boolean isBuiltin = LogoLanguage.isBuiltin(pc.name().text());
+                    if (sym == null && !isBuiltin && !ignoreProcErrors)
+                        errors.add(new Diagnostic(
+                                LspConverter.toRange(pc.name().start(), pc.name().end()),
+                                "Undefined procedure: " + pc.name().text())
+                        );
+                }
+                case Node.DefineStmt ds -> {
+                    walk(ds.name());
+                    ignoreProcErrors = true;
+                    for (var param : ds.params())
+                        walk(param);
+                    ignoreProcErrors = false;
+                    walk(ds.body());
+                }
+                default -> super.walk(node);
+            }
         }
 
         public List<Diagnostic> getErrors() {

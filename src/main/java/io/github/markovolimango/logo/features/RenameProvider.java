@@ -13,10 +13,19 @@ import java.util.List;
 
 public class RenameProvider {
     public static List<TextEdit> getRenameEdits(DocumentState state, Pos pos, String newName) {
-        Token token = Lexer.recoverTokenAt(state.getLine(pos.line()), pos.col());
+        var tokens = new Lexer(state.getLine(pos.line())).tokenize();
+        int i = 0;
+        while (tokens.get(i).start().col() <= pos.col()) i++;
+        i--;
+        Token token = tokens.get(i);
+
         Symbol sym = switch (token.type()) {
             case VARREF -> state.getSymTable().getVarDef(token.text(), pos);
-            case PROC -> state.getSymTable().getProcDef(token.text(), pos);
+            case PROC -> {
+                if (Lexer.isDefineParamAt(i, tokens))
+                    yield state.getSymTable().getVarDef(token.text(), pos);
+                yield state.getSymTable().getProcDef(token.text(), pos);
+            }
             default -> null;
         };
         if (sym == null) return null;

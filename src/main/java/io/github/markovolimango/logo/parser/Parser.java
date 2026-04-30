@@ -84,28 +84,40 @@ public class Parser {
         Node name = parseExpr();
         Node.Block block = parseBlock();
 
-        Node.Block params = new Node.Block(new ArrayList<>(), block.start(), block.start());
-        Node.Block body = new Node.Block(new ArrayList<>(), block.end(), block.end());
         if (block.body().size() != 2) {
             errors.add(new ParseError("Expected list of length 2 in 'DEFINE'", block.start(), block.end()));
-        } else {
-            if (block.body().getFirst() instanceof Node.Block)
-                params = (Node.Block) block.body().getFirst();
-            else
-                errors.add(new ParseError("Expected list of arguments in 'DEFINE", block.body().getFirst().start(), block.body().getFirst().end()));
-            if (block.body().getLast() instanceof Node.Block)
-                body = (Node.Block) block.body().getLast();
-            else
-                errors.add(new ParseError("Expected list of body statements in 'DEFINE", block.body().getLast().start(), block.body().getLast().end()));
+            return new Node.DefineStmt(name, new ArrayList<>(), new Node.Block(new ArrayList<>(), block.start(), block.end()), name.start(), block.end());
         }
-        return new Node.DefineStmt(name, params, body, name.start(), block.end());
+        var params = parseDefineParams(block.body().getFirst());
+        return new Node.DefineStmt(name, params, block.body().getLast(), name.start(), block.end());
+    }
+
+    public List<Node> parseDefineParams(Node node) {
+        return switch (node) {
+            case Node.ProcCall pc -> List.of(pc);
+            case Node.Block b -> {
+                List<Node> params = new ArrayList<>();
+                for (Node n : b.body()) {
+                    if (!(n instanceof Node.ProcCall))
+                        errors.add(new ParseError("Invalid procedure parameter", n.start(), n.end()));
+                    else if (!((Node.ProcCall) n).args().isEmpty())
+                        errors.add(new ParseError("Invalid procedure parameter", n.start(), n.end()));
+                    params.add(n);
+                }
+                yield params;
+            }
+            default -> {
+                errors.add(new ParseError("Invalid procedure parameter", node.start(), node.end()));
+                yield List.of(node);
+            }
+        };
     }
 
     public Node.ProcCall parseProcCall() {
         Token name = consume();
         Integer arity = getProcArity(name.text());
         if (arity == null) {
-            errors.add(new ParseError("Undefined procedure: " + name.text(), name.start(), name.end()));
+            // errors.add(new ParseError("Undefined procedure: " + name.text(), name.start(), name.end()));
             arity = 0;
         }
 

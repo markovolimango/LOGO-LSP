@@ -47,6 +47,19 @@ public class Lexer {
         return new Token(Token.Type.EOF, "", new Pos(0, 0), new Pos(0, 0));
     }
 
+    public static boolean isDefineParamAt(int i, List<Token> tokens) {
+        if (tokens.getFirst().type() != Token.Type.DEFINE) return false;
+        int j = 0;
+        while (j < tokens.size() && tokens.get(j).type() != Token.Type.LBRACKET) j++;
+        if (j >= tokens.size() - 2) return false;
+        if (i == j + 1) return true;
+        if (tokens.get(j + 1).type() != Token.Type.LBRACKET) return false;
+        j++;
+        while (j < tokens.size() && tokens.get(j).type() != Token.Type.RBRACKET)
+            if (i == j++) return true;
+        return false;
+    }
+
     public List<Token> tokenize() {
         while (currOffs < source.length() - 2) {
             startPos = currPos;

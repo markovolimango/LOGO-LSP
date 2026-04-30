@@ -32,7 +32,7 @@ public class AstPrinter extends AstWalker {
                 System.out.println("(DEFINE");
                 indent(() -> {
                     walk(d.name());
-                    walk(d.params());
+                    d.params().forEach(this::walk);
                     walk(d.body());
                 });
                 System.out.print(")");
