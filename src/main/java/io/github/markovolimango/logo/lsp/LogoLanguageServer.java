@@ -35,7 +35,7 @@ public class LogoLanguageServer implements LanguageServer, LanguageClientAware {
         capabilities.setDefinitionProvider(true);
         capabilities.setDeclarationProvider(true);
         capabilities.setReferencesProvider(true);
-        capabilities.setRenameProvider(true);
+        capabilities.setRenameProvider(new RenameOptions(true));
         capabilities.setDocumentSymbolProvider(true);
 
         SemanticTokensLegend legend = new SemanticTokensLegend(

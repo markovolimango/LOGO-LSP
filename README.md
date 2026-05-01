@@ -56,23 +56,23 @@ cd LOGO-LSP
 ## Key design decisions
 
 **Pratt parser for expressions** -
-The parser uses a top-down operator precedence approach for expresson parsing.
-Each operator has a bidning power stored in LogoLanguage.
+The parser uses a top-down operator precedence approach for expression parsing.
+Each operator has a binding power stored in LogoLanguage.
 
 **No statement/expression distinction** -
 Every procedure call (including make, repeat, if) is parsed as an expression.
 In Logo procedures may or may not output a value depending on the execution path.
-That's something that I feel shold be checked at runtime, not statically by an LSP server.
+That's something that I feel should be checked at runtime, not statically by an LSP server.
 Return value diagnostic reporting is only done for built-in procedures.
 
 **TO and DEFINE as separate AST nodes** -
 'TO' procedure definition is the only Logo language construct that's not a procedure, so it's treated completely
 separately.
-'DEFINE', on the other hand, is just a procedure, that can take any expression as an argument. If the name is not a
+'DEFINE', on the other hand, is just a procedure that can take any expression as an argument. If the name is not a
 literal, it's not registered in the symbol table.
 
 **Scope tree with reverse-ordered definition lookup** -
-Each Scope sotres a list of Symbols in definition order to allow for redefinitions.
+Each Scope stores a list of Symbols in definition order to allow for redefinitions.
 Lookup then iterates the list in reverse to find the last definition.
 Variable resolution recursively walks up to the nearest definition, while all procedures are global.
 
@@ -83,3 +83,8 @@ lsp4j types.
 **Debounced reparse on didChange** -
 Rather than rebuilding DocumentState on every keystroke, didChange schedules a reparse 150ms later.
 If a new change occurs in that time, the old reparse is canceled.
+
+## Challenges and Trade-offs
+
+- The LSP doesn't check if user-defined procedures return a value.
+  I wish I separated expressions and statements more, but it's too late for that now and this is more than good enough.

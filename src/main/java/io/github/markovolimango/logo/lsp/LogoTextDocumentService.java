@@ -5,6 +5,7 @@ import io.github.markovolimango.logo.features.*;
 import io.github.markovolimango.logo.lexer.Pos;
 import org.eclipse.lsp4j.*;
 import org.eclipse.lsp4j.jsonrpc.messages.Either;
+import org.eclipse.lsp4j.jsonrpc.messages.Either3;
 import org.eclipse.lsp4j.services.LanguageClient;
 import org.eclipse.lsp4j.services.TextDocumentService;
 
@@ -121,6 +122,19 @@ public class LogoTextDocumentService implements TextDocumentService {
         var cursor = LspConverter.fromPosition(params.getPosition());
         if (state == null) return CompletableFuture.completedFuture(null);
         return CompletableFuture.supplyAsync(() -> ReferencesProvider.findReferences(state, cursor));
+    }
+
+    @Override
+    public CompletableFuture<Either3<Range, PrepareRenameResult, PrepareRenameDefaultBehavior>> prepareRename(PrepareRenameParams params) {
+        String uri = params.getTextDocument().getUri();
+        Pos cursor = LspConverter.fromPosition(params.getPosition());
+        DocumentState state = documents.get(uri);
+        if (state == null) return null;
+        return CompletableFuture.supplyAsync(() -> {
+            Location loc = DefinitionProvider.findDefinition(state, cursor);
+            if (loc == null) return null;
+            return Either3.forFirst(loc.getRange());
+        });
     }
 
     @Override
