@@ -10,7 +10,8 @@ LSP language server for Logo
   procedures
 - **Rename refactoring** - smart renaming of procedures and variables, accounts for multiple definitions of the same
   symbol
-- **Diagnostics reporting** - errors for undefined procedures/variables, unexpected tokens, invalid arguments and more
+- **Diagnostics reporting** - errors for undefined procedures/variables, unexpected tokens, invalid arguments, unused or
+  expected but not provided values and more
 - **Completion** - completion suggestions of procedures, local and global variables and built-in keywords, as well as
   `TO` procedure definition syntax (auto inserting `END`)
 

@@ -414,6 +414,11 @@ public final class LogoLanguage {
         return info != null ? info.arity() : null;
     }
 
+    public static Returns getReturns(String procName) {
+        ProcInfo info = BUILTIN_PROCS.get(procName.toLowerCase());
+        return info != null ? info.returns : null;
+    }
+
     public static int[] getInfixBP(String operator) {
         return INFIX_BP.get(operator.toLowerCase());
     }

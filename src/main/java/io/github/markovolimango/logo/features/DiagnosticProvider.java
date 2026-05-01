@@ -8,6 +8,7 @@ import io.github.markovolimango.logo.lsp.LspConverter;
 import io.github.markovolimango.logo.parser.AstWalker;
 import io.github.markovolimango.logo.parser.Node;
 import org.eclipse.lsp4j.Diagnostic;
+import org.eclipse.lsp4j.DiagnosticSeverity;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -24,6 +25,9 @@ public class DiagnosticProvider {
         var errorFinder = new UndefinedRefFinder(state);
         errorFinder.walk(state.getAst());
         diagnostics.addAll(errorFinder.getErrors());
+        var checker = new ReturnValueChecker();
+        checker.walk(state.getAst());
+        diagnostics.addAll(checker.getErrors());
         return diagnostics;
     }
 
@@ -70,6 +74,105 @@ public class DiagnosticProvider {
 
         public List<Diagnostic> getErrors() {
             return errors;
+        }
+    }
+
+    public static class ReturnValueChecker {
+        public List<Diagnostic> errors = new ArrayList<>();
+
+        public List<Diagnostic> getErrors() {
+            return errors;
+        }
+
+        public void walk(Node.Program program) {
+            walk(program, Context.NEUTRAL);
+        }
+
+        private void walk(Node node, Context ctx) {
+            switch (node) {
+                case Node.Program p -> p.body().forEach(n -> walk(n, Context.STMT));
+
+                case Node.ToStmt d -> d.body().forEach(n -> walk(n, Context.STMT));
+
+                case Node.DefineStmt d -> {
+                    if (ctx == Context.EXPR) {
+                        error(d, "Expected expression");
+                    }
+                    walk(d.name(), Context.EXPR);
+                    d.params().forEach(n -> walk(n, Context.EXPR));
+                    walk(d.body(), Context.STMT);
+                }
+
+                case Node.ProcCall c -> {
+                    var returns = LogoLanguage.getReturns(c.name().text());
+
+                    if (ctx == Context.STMT && returns == LogoLanguage.Returns.VALUE) {
+                        error(c, "Unused return value");
+                    }
+                    if (ctx == Context.EXPR && returns == LogoLanguage.Returns.VOID) {
+                        error(c, "Expected expression");
+                    }
+
+                    c.args().forEach(n -> walk(n, Context.EXPR));
+                }
+
+                case Node.MakeStmt m -> {
+                    if (ctx == Context.EXPR) error(m, "Expected expression");
+                    walk(m.name(), Context.EXPR);
+                    walk(m.value(), Context.EXPR);
+                }
+
+                case Node.LocalMakeStmt l -> {
+                    if (ctx == Context.EXPR) error(l, "Expected expression");
+                    walk(l.name(), Context.EXPR);
+                    walk(l.value(), Context.EXPR);
+                }
+
+                case Node.OutputStmt o -> {
+                    if (ctx == Context.EXPR) error(o, "Expected expression");
+                    walk(o.value(), Context.EXPR);
+                }
+
+                case Node.InfixExpr e -> {
+                    if (ctx == Context.STMT) error(e, "Unused value");
+                    walk(e.left(), Context.EXPR);
+                    walk(e.right(), Context.EXPR);
+                }
+
+                case Node.PrefixExpr e -> {
+                    if (ctx == Context.STMT) error(e, "Unused value");
+                    walk(e.operand(), Context.EXPR);
+                }
+
+                case Node.Block b -> b.body().forEach(n -> walk(n, Context.STMT));
+
+                case Node.Number n -> {
+                    if (ctx == Context.STMT) error(n, "Unused value");
+                }
+
+                case Node.Word w -> {
+                    if (ctx == Context.STMT) error(w, "Unused value");
+                }
+
+                case Node.VarRef v -> {
+                    if (ctx == Context.STMT) error(v, "Unused value");
+                }
+            }
+        }
+
+        private void error(Node n, String msg) {
+            errors.add(new Diagnostic(
+                    LspConverter.toRange(n.start(), n.end()),
+                    msg,
+                    DiagnosticSeverity.Error,
+                    ""
+            ));
+        }
+
+        private enum Context {
+            STMT,
+            EXPR,
+            NEUTRAL
         }
     }
 }
