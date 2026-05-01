@@ -3,7 +3,7 @@ to helper :x
     forward :temp
 end
 
-to draw :size :color
+to draw :size :color [:bubo]
     make "size :size * 2
     repeat :size [
         helper :size
@@ -28,6 +28,6 @@ to mare
   print 42
 end
 
-draw :size 1
+(draw :size 1 2)
 size
 helper :size

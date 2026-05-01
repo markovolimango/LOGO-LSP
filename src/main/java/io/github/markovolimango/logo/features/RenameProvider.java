@@ -15,6 +15,8 @@ public class RenameProvider {
         var lexer = new Lexer(state.getLine(pos.line()));
         var token = lexer.getTokenAt(new Pos(0, pos.col()));
 
+        if (token.text().isBlank()) return null;
+
         Symbol sym = switch (token.type()) {
             case VARREF -> state.getSymTable().getVarDef(token.text(), pos);
             case PROC -> {

@@ -11,7 +11,7 @@ import java.util.Map;
 
 public class Parser {
     private final List<Token> tokens;
-    private final Map<String, Integer> userDefinedArity = new HashMap<>();
+    private final Map<String, LogoLanguage.Arity> userDefinedArity = new HashMap<>();
     private final List<ParseError> errors = new ArrayList<>();
     private int pos;
     private Token lastConsumed = new Token(Token.Type.EOF, "", new Pos(0, 0), new Pos(0, 0));
@@ -70,18 +70,26 @@ public class Parser {
     public Node parseToStmt() {
         Token toToken = consume();
         Token name = consume();     // maybe check for errors here?
-        List<Token> params = new ArrayList<>();
-        List<Node> body = new ArrayList<>();
+        var requiredParams = new ArrayList<Token>();
+        var optionalParams = new ArrayList<Token>();
+        var body = new ArrayList<Node>();
         while (peek().type() == Token.Type.VARREF)
-            params.add(consume());
-        userDefinedArity.put(name.text(), params.size());
+            requiredParams.add(consume());
+        while (peek().type() == Token.Type.LBRACKET) {
+            consume();
+            var vr = expect(Token.Type.VARREF);
+            expect(Token.Type.RBRACKET);
+            optionalParams.add(vr);
+        }
+        int min = requiredParams.size(), max = min + optionalParams.size();
+        userDefinedArity.put(name.text(), LogoLanguage.Arity.capped(min, max));
         while (peek().type() != Token.Type.EOF && peek().type() != Token.Type.END) {
             int startPos = pos;
             body.add(parseExpr());
             if (pos == startPos) consume();
         }
         Token endToken = expect(Token.Type.END);
-        return new Node.ToStmt(name, params, body, toToken.start(), endToken.end());
+        return new Node.ToStmt(name, requiredParams, body, toToken.start(), endToken.end());
     }
 
     // only called when we know the keyword is correct
@@ -122,16 +130,23 @@ public class Parser {
     public Node.ProcCall parseProcCall() {
         boolean isGreedy = lastConsumed.type() == Token.Type.LPAREN;
         Token name = consume();
-        Integer arity = getProcArity(name.text());
+        var arity = getProcArity(name.text());
         if (arity == null) {
             // errors.add(new ParseError("Undefined procedure: " + name.text(), name.start(), name.end()));
-            arity = 0;
+            arity = LogoLanguage.Arity.fixed(0);
         }
-
-        var args = new ArrayList<Node>(Math.max(0, arity));
-        while (isGreedy ? (peek().type() != Token.Type.RPAREN && peek().type() != Token.Type.EOF) : arity-- > 0)
-            args.add(parseExpr());
-
+        var args = new ArrayList<Node>();
+        if (isGreedy) {
+            while (peek().type() != Token.Type.RPAREN && peek().type() != Token.Type.EOF)
+                args.add(parseExpr());
+            if (args.size() > arity.max() && arity.max() > -1)
+                errors.add(new ParseError("Too many arguments for procedure: " + name.text(), name.start(), name.end()));
+            if (args.size() < arity.min())
+                errors.add(new ParseError("Too few arguments for procedure: " + name.text(), name.start(), name.end()));
+        } else {
+            for (int i = 0; i < arity.min(); i++)
+                args.add(parseExpr());
+        }
         return new Node.ProcCall(name, args, name.start(), args.isEmpty() ? name.end() : args.getLast().end());
     }
 
@@ -243,7 +258,7 @@ public class Parser {
         if (tokens.isEmpty()) {
             return new Token(Token.Type.EOF, "", new Pos(0, 0), new Pos(0, 0));
         }
-        Token last = tokens.get(tokens.size() - 1);
+        Token last = tokens.getLast();
         if (last.type() == Token.Type.EOF) return last;
         return new Token(Token.Type.EOF, "", last.end(), last.end());
     }
@@ -262,7 +277,7 @@ public class Parser {
         return new Token(type, "", lastConsumed.end(), lastConsumed.end());
     }
 
-    private Integer getProcArity(String name) {
+    private LogoLanguage.Arity getProcArity(String name) {
         var arity = LogoLanguage.getArity(name);
         if (arity == null) arity = userDefinedArity.get(name);
         return arity;

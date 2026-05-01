@@ -11,6 +11,8 @@ import org.eclipse.lsp4j.Location;
 public class DefinitionProvider {
     public static Location findDefinition(DocumentState state, Pos pos) {
         Token token = new Lexer(state.getLine(pos.line())).getTokenAt(new Pos(0, pos.col()));
+        if (token.text().isBlank()) return null;
+        
         var symTable = state.getSymTable();
         Symbol sym = switch (token.type()) {
             case VARREF -> symTable.getVarDef(token.text(), pos);

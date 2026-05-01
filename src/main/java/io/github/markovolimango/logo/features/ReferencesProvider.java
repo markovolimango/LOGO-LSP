@@ -17,6 +17,8 @@ public class ReferencesProvider {
         var i = lexer.getIndexFromPos(pos);
         var token = lexer.getTokenAt(new Pos(0, pos.col()));
 
+        if (token.text().isBlank()) return null;
+
         List<Location> locations = new ArrayList<>();
         var symTable = state.getSymTable();
         List<Pos[]> refs = switch (token.type()) {
