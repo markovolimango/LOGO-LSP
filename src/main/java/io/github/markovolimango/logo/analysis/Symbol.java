@@ -16,6 +16,7 @@ public sealed abstract class Symbol {
         this.start = token.start();
         this.end = token.end();
         this.references = new ArrayList<>();
+        this.references.add(new Pos[]{start, end});
     }
 
     public void addReference(Pos start, Pos end) {

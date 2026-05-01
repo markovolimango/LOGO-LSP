@@ -3,6 +3,7 @@ package io.github.markovolimango.logo.features;
 import io.github.markovolimango.logo.analysis.Symbol;
 import io.github.markovolimango.logo.lexer.Lexer;
 import io.github.markovolimango.logo.lexer.Pos;
+import io.github.markovolimango.logo.lexer.Token;
 import io.github.markovolimango.logo.lsp.DocumentState;
 import io.github.markovolimango.logo.lsp.LspConverter;
 import org.eclipse.lsp4j.TextEdit;
@@ -24,11 +25,21 @@ public class RenameProvider {
                     yield state.getSymTable().getVarDef(token.text(), pos);
                 yield state.getSymTable().getProcDef(token.text(), pos);
             }
+            case WORD -> {
+                int i = lexer.getIndexFromPos(new Pos(0, pos.col()));
+                var tokens = lexer.getTokens();
+                if ((i > 0 &&
+                        (tokens.get(i - 1).type() == Token.Type.MAKE || tokens.get(i - 1).type() == Token.Type.LOCALMAKE))
+                        || (i > 1 && tokens.get(i - 1).type() == Token.Type.NAME))
+                    yield state.getSymTable().getVarDef(tokens.get(i).text(), pos);
+                if (i > 0 && tokens.get(i - 1).type() == Token.Type.DEFINE)
+                    yield state.getSymTable().getProcDef(tokens.get(i).text(), pos);
+                yield null;
+            }
             default -> null;
         };
         if (sym == null) return null;
         List<TextEdit> edits = new ArrayList<>();
-        edits.add(new TextEdit(LspConverter.toRange(getTextStart(state, sym.getStart()), sym.getEnd()), newName));
         for (Pos[] ref : sym.getReferences())
             edits.add(new TextEdit(LspConverter.toRange(getTextStart(state, ref[0]), ref[1]), newName));
         return edits;

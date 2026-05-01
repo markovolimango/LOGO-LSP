@@ -59,6 +59,7 @@ public class DiagnosticProvider {
                                 LspConverter.toRange(pc.name().start(), pc.name().end()),
                                 "Undefined procedure: " + pc.name().text())
                         );
+                    super.walk(pc);
                 }
                 case Node.DefineStmt ds -> {
                     walk(ds.name());
