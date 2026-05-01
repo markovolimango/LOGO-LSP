@@ -242,25 +242,12 @@ public class Parser {
     }
 
     private Token peek() {
-        if (pos >= tokens.size()) {
-            return getEofToken();
-        }
         Token t = tokens.get(pos);
         while (t.type() == Token.Type.COMMENT) {
             pos++;
-            if (pos >= tokens.size()) return getEofToken();
             t = tokens.get(pos);
         }
         return t;
-    }
-
-    private Token getEofToken() {
-        if (tokens.isEmpty()) {
-            return new Token(Token.Type.EOF, "", new Pos(0, 0), new Pos(0, 0));
-        }
-        Token last = tokens.getLast();
-        if (last.type() == Token.Type.EOF) return last;
-        return new Token(Token.Type.EOF, "", last.end(), last.end());
     }
 
     private Token consume() {

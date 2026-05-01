@@ -375,12 +375,12 @@ public final class LogoLanguage {
             return new Arity(n, n);
         }
 
-        public static Arity variadic(int def) {
-            return new Arity(def, -1);
+        public static Arity variadic(int min) {
+            return new Arity(min, -1);
         }
 
-        public static Arity capped(int def, int max) {
-            return new Arity(def, max);
+        public static Arity capped(int min, int max) {
+            return new Arity(min, max);
         }
     }
 }
