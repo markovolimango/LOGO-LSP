@@ -379,7 +379,6 @@ class ParserTest {
         // If we put it in a block, maybe we can see it failing inside but continuing after
         Parser parser = new Parser(new Lexer("[ forward ] back 10").getTokens());
         Node.Program program = parser.parseProgram();
-        new AstPrinter().print(program);
 
         boolean foundBack = program.body().stream()
                 .anyMatch(n -> n instanceof Node.ProcCall pc && pc.name().text().equalsIgnoreCase("back"));
@@ -390,7 +389,6 @@ class ParserTest {
     void comment_doesNotProduceNode() {
         // Assumes ; starts a line comment — adjust if your lexer uses a different convention
         Node.Program program = parseProgram("; this is a comment\nforward 50");
-        new AstPrinter().print(program);
         assertEquals(1, program.body().size());
         assertInstanceOf(Node.ProcCall.class, program.body().getFirst());
     }
@@ -430,8 +428,5 @@ class ParserTest {
     }
 
     private record ParseResult(Node.Program program, Parser parser) {
-        List<ParseError> errors() {
-            return parser.getErrors();
-        }
     }
 }

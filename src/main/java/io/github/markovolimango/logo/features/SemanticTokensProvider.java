@@ -1,6 +1,7 @@
 package io.github.markovolimango.logo.features;
 
 import io.github.markovolimango.logo.LogoLanguage;
+import io.github.markovolimango.logo.analysis.Symbol;
 import io.github.markovolimango.logo.lexer.Token;
 import io.github.markovolimango.logo.lsp.DocumentState;
 import org.eclipse.lsp4j.SemanticTokens;
@@ -44,11 +45,14 @@ public final class SemanticTokensProvider {
             };
             if (semanticType == null) continue;
 
-            Integer semanticModifier = switch (t.type()) {
+            int semanticModifier = switch (t.type()) {
                 case PROC, DEFINE, MAKE, LOCALMAKE, NAME, OUTPUT ->
                         LogoLanguage.isBuiltin(t.text()) ? MOD_DEFAULT_LIB : MOD_NONE;
                 default -> MOD_NONE;
             };
+            Symbol sym = state.getSymTable().getVarDef(t.text(), t.start());
+            if (sym == null) sym = state.getSymTable().getProcDef(t.text(), t.start());
+            if (sym != null && sym.getStart() == t.start()) semanticModifier |= MOD_DECLARATION;
 
             result.add(line - prevLine);
             result.add(line == prevLine ? col - prevCol : col);

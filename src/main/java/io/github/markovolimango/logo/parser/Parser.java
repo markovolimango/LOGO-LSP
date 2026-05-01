@@ -85,7 +85,8 @@ public class Parser {
         userDefinedArity.put(name.text(), LogoLanguage.Arity.capped(min, max));
         while (peek().type() != Token.Type.EOF && peek().type() != Token.Type.END) {
             int startPos = pos;
-            body.add(parseExpr());
+            var expr = parseExpr();
+            body.add(expr);
             if (pos == startPos) consume();
         }
         Token endToken = expect(Token.Type.END);

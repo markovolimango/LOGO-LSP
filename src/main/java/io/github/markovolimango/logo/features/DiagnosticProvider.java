@@ -21,19 +21,19 @@ public class DiagnosticProvider {
                     LspConverter.toRange(error.start(), error.end()),
                     error.message()
             ));
-        var errorFinder = new ErrorFinder(state);
+        var errorFinder = new UndefinedRefFinder(state);
         errorFinder.walk(state.getAst());
         diagnostics.addAll(errorFinder.getErrors());
         return diagnostics;
     }
 
-    private static class ErrorFinder extends AstWalker {
+    private static class UndefinedRefFinder extends AstWalker {
         private final List<Diagnostic> errors = new ArrayList<>();
         private final DocumentState state;
         private boolean ignoreProcErrors = false;
 
 
-        public ErrorFinder(DocumentState state) {
+        public UndefinedRefFinder(DocumentState state) {
             this.state = state;
         }
 
