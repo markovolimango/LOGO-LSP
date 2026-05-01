@@ -31,7 +31,7 @@ public class LogoTextDocumentService implements TextDocumentService {
         String text = params.getTextDocument().getText();
         var state = new DocumentState(uri, text);
         documents.put(uri, state);
-        client.publishDiagnostics(new PublishDiagnosticsParams(uri, DiagnosticProvider.getDiagnostics(state)));
+        CompletableFuture.runAsync(() -> client.publishDiagnostics(new PublishDiagnosticsParams(uri, DiagnosticProvider.getDiagnostics(state))));
     }
 
     @Override
