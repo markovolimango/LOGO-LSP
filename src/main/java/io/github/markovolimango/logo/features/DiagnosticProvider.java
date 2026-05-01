@@ -85,77 +85,93 @@ public class DiagnosticProvider {
         }
 
         public void walk(Node.Program program) {
-            walk(program, Context.NEUTRAL);
+            walk(program, LogoLanguage.Returns.EITHER);
         }
 
-        private void walk(Node node, Context ctx) {
+        private void walk(Node node, LogoLanguage.Returns expecting) {
             switch (node) {
-                case Node.Program p -> p.body().forEach(n -> walk(n, Context.STMT));
+                case Node.Program p -> p.body().forEach(n -> walk(n, LogoLanguage.Returns.VOID));
 
-                case Node.ToStmt d -> d.body().forEach(n -> walk(n, Context.STMT));
+                case Node.ToStmt d -> d.body().forEach(n -> walk(n, LogoLanguage.Returns.VOID));
 
                 case Node.DefineStmt d -> {
-                    if (ctx == Context.EXPR) {
+                    if (expecting == LogoLanguage.Returns.VALUE) {
                         error(d, "Expected expression");
                     }
-                    walk(d.name(), Context.EXPR);
-                    d.params().forEach(n -> walk(n, Context.EXPR));
-                    walk(d.body(), Context.STMT);
+                    walk(d.name(), LogoLanguage.Returns.VALUE);
+                    d.params().forEach(n -> walk(n, LogoLanguage.Returns.VALUE));
+                    walk(d.body(), LogoLanguage.Returns.VOID);
                 }
 
                 case Node.ProcCall c -> {
                     var returns = LogoLanguage.getReturns(c.name().text());
 
-                    if (ctx == Context.STMT && returns == LogoLanguage.Returns.VALUE) {
+                    if (expecting == LogoLanguage.Returns.VOID && returns == LogoLanguage.Returns.VALUE) {
                         error(c, "Unused return value");
                     }
-                    if (ctx == Context.EXPR && returns == LogoLanguage.Returns.VOID) {
+                    if (expecting == LogoLanguage.Returns.VALUE && returns == LogoLanguage.Returns.VOID) {
                         error(c, "Expected expression");
                     }
 
-                    c.args().forEach(n -> walk(n, Context.EXPR));
+                    c.args().forEach(n -> walk(n, LogoLanguage.Returns.VALUE));
                 }
 
                 case Node.MakeStmt m -> {
-                    if (ctx == Context.EXPR) error(m, "Expected expression");
-                    walk(m.name(), Context.EXPR);
-                    walk(m.value(), Context.EXPR);
+                    if (expecting == LogoLanguage.Returns.VALUE) {
+                        error(m, "Expected expression");
+                    }
+                    walk(m.name(), LogoLanguage.Returns.VALUE);
+                    walk(m.value(), LogoLanguage.Returns.VALUE);
                 }
 
                 case Node.LocalMakeStmt l -> {
-                    if (ctx == Context.EXPR) error(l, "Expected expression");
-                    walk(l.name(), Context.EXPR);
-                    walk(l.value(), Context.EXPR);
+                    if (expecting == LogoLanguage.Returns.VALUE) {
+                        error(l, "Expected expression");
+                    }
+                    walk(l.name(), LogoLanguage.Returns.VALUE);
+                    walk(l.value(), LogoLanguage.Returns.VALUE);
                 }
 
                 case Node.OutputStmt o -> {
-                    if (ctx == Context.EXPR) error(o, "Expected expression");
-                    walk(o.value(), Context.EXPR);
+                    if (expecting == LogoLanguage.Returns.VALUE) {
+                        error(o, "Expected expression");
+                    }
+                    walk(o.value(), LogoLanguage.Returns.VALUE);
                 }
 
                 case Node.InfixExpr e -> {
-                    if (ctx == Context.STMT) error(e, "Unused value");
-                    walk(e.left(), Context.EXPR);
-                    walk(e.right(), Context.EXPR);
+                    if (expecting == LogoLanguage.Returns.VOID) {
+                        error(e, "Unused value");
+                    }
+                    walk(e.left(), LogoLanguage.Returns.VALUE);
+                    walk(e.right(), LogoLanguage.Returns.VALUE);
                 }
 
                 case Node.PrefixExpr e -> {
-                    if (ctx == Context.STMT) error(e, "Unused value");
-                    walk(e.operand(), Context.EXPR);
+                    if (expecting == LogoLanguage.Returns.VOID) {
+                        error(e, "Unused value");
+                    }
+                    walk(e.operand(), LogoLanguage.Returns.VALUE);
                 }
 
-                case Node.Block b -> b.body().forEach(n -> walk(n, Context.STMT));
+                case Node.Block b -> b.body().forEach(n -> walk(n, LogoLanguage.Returns.VOID));
 
                 case Node.Number n -> {
-                    if (ctx == Context.STMT) error(n, "Unused value");
+                    if (expecting == LogoLanguage.Returns.VOID) {
+                        error(n, "Unused value");
+                    }
                 }
 
                 case Node.Word w -> {
-                    if (ctx == Context.STMT) error(w, "Unused value");
+                    if (expecting == LogoLanguage.Returns.VOID) {
+                        error(w, "Unused value");
+                    }
                 }
 
                 case Node.VarRef v -> {
-                    if (ctx == Context.STMT) error(v, "Unused value");
+                    if (expecting == LogoLanguage.Returns.VOID) {
+                        error(v, "Unused value");
+                    }
                 }
             }
         }
@@ -167,12 +183,6 @@ public class DiagnosticProvider {
                     DiagnosticSeverity.Error,
                     ""
             ));
-        }
-
-        private enum Context {
-            STMT,
-            EXPR,
-            NEUTRAL
         }
     }
 }

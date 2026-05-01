@@ -22,18 +22,20 @@ public class CompletionProvider {
         items.add(toItem);
 
         if (state != null) {
-            state.getSymTable().getVarNames(pos).stream()
+            state.getSymTable().getAllVars(pos).stream()
                     .distinct()
-                    .forEach(name -> {
+                    .forEach(sym -> {
+                        String name = sym.getName();
                         CompletionItem item = new CompletionItem(":" + name);
                         item.setKind(CompletionItemKind.Variable);
                         item.setDetail("Variable");
                         items.add(item);
                     });
 
-            state.getSymTable().getProcNames(pos).stream()
+            state.getSymTable().getAllProcs(pos).stream()
                     .distinct()
-                    .forEach(name -> {
+                    .forEach(sym -> {
+                        String name = sym.getName();
                         CompletionItem item = new CompletionItem(name);
                         item.setKind(CompletionItemKind.Function);
                         item.setDetail("Procedure");

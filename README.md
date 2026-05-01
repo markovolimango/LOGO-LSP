@@ -10,6 +10,7 @@ LSP language server for Logo
   procedures
 - **Rename refactoring** - smart renaming of procedures and variables, accounts for multiple definitions of the same
   symbol
+- **Document structure** - outline view of global variables and procedures
 - **Diagnostics reporting** - errors for undefined procedures/variables, unexpected tokens, invalid arguments, unused or
   expected but not provided values and more
 - **Completion** - completion suggestions of procedures, local and global variables and built-in keywords, as well as
@@ -60,7 +61,8 @@ Each operator has a bidning power stored in LogoLanguage.
 **No statement/expression distinction** -
 Every procedure call (including make, repeat, if) is parsed as an expression.
 In Logo procedures may or may not output a value depending on the execution path.
-That's something that i feel shold be checked at runtime, not statically by an LSP server.
+That's something that I feel shold be checked at runtime, not statically by an LSP server.
+Return value diagnostic reporting is only done for built-in procedures.
 
 **TO and DEFINE as separate AST nodes** -
 'TO' procedure definition is the only Logo language construct that's not a procedure, so it's treated completely

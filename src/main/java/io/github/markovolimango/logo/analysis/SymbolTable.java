@@ -15,8 +15,8 @@ public class SymbolTable {
         return globalScope.getProcDef(name, start);
     }
 
-    public List<String> getProcNames(Pos start) {
-        return globalScope.getAllProcNames(start);
+    public List<Symbol> getAllProcs(Pos start) {
+        return globalScope.getAllProcs(start);
     }
 
     private Scope findDeepestScope(Pos start) {
@@ -39,8 +39,8 @@ public class SymbolTable {
         return findDeepestScope(start).getVarDef(name, start);
     }
 
-    public List<String> getVarNames(Pos start) {
-        return findDeepestScope(start).getAllVarNames(start);
+    public List<Symbol> getAllVars(Pos start) {
+        return findDeepestScope(start).getAllVars(start);
     }
 
     public List<Pos[]> getVarRefs(String name, Pos start) {

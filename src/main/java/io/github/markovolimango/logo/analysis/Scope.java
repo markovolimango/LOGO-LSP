@@ -43,22 +43,22 @@ public class Scope {
         return (Symbol.Proc) getDef(name, start, Symbol.Proc.class);
     }
 
-    public List<String> getAllNames(Pos start, Class<? extends Symbol> type) {
-        var res = parent != null ? parent.getAllNames(start, type) : new ArrayList<String>();
-        symbols.forEach((name, symbol) -> {
-            for (Symbol s : symbol)
-                if (s.getClass() == type && start.isAfter(s.getEnd()))
-                    res.add(name);
+    public List<Symbol> getAllSymbols(Pos start, Class<? extends Symbol> type) {
+        var res = parent != null ? parent.getAllSymbols(start, type) : new ArrayList<Symbol>();
+        symbols.forEach((_, symbols) -> {
+            for (Symbol symbol : symbols)
+                if (symbol.getClass() == type && start.isAfter(symbol.getEnd()))
+                    res.add(symbol);
         });
         return res;
     }
 
-    public List<String> getAllVarNames(Pos start) {
-        return getAllNames(start, Symbol.Var.class);
+    public List<Symbol> getAllVars(Pos start) {
+        return getAllSymbols(start, Symbol.Var.class);
     }
 
-    public List<String> getAllProcNames(Pos start) {
-        return getAllNames(start, Symbol.Proc.class);
+    public List<Symbol> getAllProcs(Pos start) {
+        return getAllSymbols(start, Symbol.Proc.class);
     }
 
     public List<Scope> getChildren() {
