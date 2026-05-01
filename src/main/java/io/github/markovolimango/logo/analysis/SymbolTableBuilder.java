@@ -14,17 +14,22 @@ public class SymbolTableBuilder extends AstWalker {
     public void walk(Node node) {
         switch (node) {
             case Node.ToStmt n -> {
-                globalScope.addDefinition(new Symbol.Proc(n.name()));
+                var sym = new Symbol.Proc(n.name());
+                globalScope.addDefinition(sym);
                 scopeStack.push(new Scope(currentScope(), n.start(), n.end(), n.name().text()));
-                for (Token param : n.params())
+                for (Token param : n.params()) {
                     currentScope().addDefinition(new Symbol.Var(param));
+                    sym.addParam(param.text());
+                }
                 n.body().forEach(this::walk);
                 scopeStack.pop();
             }
             case Node.DefineStmt n -> {
+                Symbol.Proc sym = null;
                 if (n.name() instanceof Node.Word) {
                     Token nameToken = ((Node.Word) n.name()).value();
-                    globalScope.addDefinition(new Symbol.Proc(nameToken));
+                    sym = new Symbol.Proc(nameToken);
+                    globalScope.addDefinition(sym);
                 }
                 var name = "TBD";
                 if (n.name() instanceof Node.Word)
@@ -34,9 +39,13 @@ public class SymbolTableBuilder extends AstWalker {
                     if (param instanceof Node.Word) {
                         Token paramToken = ((Node.Word) param).value();
                         currentScope().addDefinition(new Symbol.Var(paramToken));
+                        if (sym != null)
+                            sym.addParam(paramToken.text());
                     } else if (param instanceof Node.ProcCall) {
                         Token paramToken = ((Node.ProcCall) param).name();
                         currentScope().addDefinition(new Symbol.Var(paramToken));
+                        if (sym != null)
+                            sym.addParam(paramToken.text());
                     } else {
                         super.walk(param);
                     }

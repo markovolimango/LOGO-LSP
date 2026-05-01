@@ -46,8 +46,28 @@ public sealed abstract class Symbol {
     }
 
     public static final class Proc extends Symbol {
+        private final List<String> params = new ArrayList<>();
+
         public Proc(Token token) {
             super(token);
         }
+
+        public List<String> getParams() {
+            return params;
+        }
+
+        public void addParam(String param) {
+            params.add(param);
+        }
+
+        public String getDescription() {
+            StringBuilder sb = new StringBuilder();
+            for (String param : params) {
+                sb.append(param);
+                sb.append(" ");
+            }
+            return sb.toString();
+        }
+
     }
 }

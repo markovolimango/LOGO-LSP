@@ -8,7 +8,7 @@ import io.github.markovolimango.logo.lsp.DocumentState;
 import io.github.markovolimango.logo.lsp.LspConverter;
 import org.eclipse.lsp4j.Location;
 
-public class DefinitionProvider {
+public final class DefinitionProvider {
     public static Location findDefinition(DocumentState state, Pos pos) {
         var linePos = new Pos(0, pos.col());
         var lexer = new Lexer(state.getLine(pos.line()));

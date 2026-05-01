@@ -12,7 +12,7 @@ import org.eclipse.lsp4j.InsertTextFormat;
 import java.util.ArrayList;
 import java.util.List;
 
-public class CompletionProvider {
+public final class CompletionProvider {
     public static List<CompletionItem> getCompletion(DocumentState state, Pos pos) {
         var lexer = new Lexer(state.getLine(pos.line()));
         var token = lexer.getTokenAt(new Pos(0, pos.col() - 1));

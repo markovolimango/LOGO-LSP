@@ -165,4 +165,12 @@ public class LogoTextDocumentService implements TextDocumentService {
     public CompletableFuture<List<FoldingRange>> foldingRange(FoldingRangeRequestParams params) {
         return CompletableFuture.supplyAsync(() -> FoldingRangeProvider.findFoldingRanges(documents.get(params.getTextDocument().getUri())));
     }
+
+    @Override
+    public CompletableFuture<Hover> hover(HoverParams params) {
+        var state = documents.get(params.getTextDocument().getUri());
+        var cursor = LspConverter.fromPosition(params.getPosition());
+        if (state == null) return CompletableFuture.completedFuture(null);
+        return CompletableFuture.supplyAsync(() -> HoverProvider.getHover(state, cursor));
+    }
 }

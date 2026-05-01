@@ -13,7 +13,7 @@ import org.eclipse.lsp4j.DiagnosticSeverity;
 import java.util.ArrayList;
 import java.util.List;
 
-public class DiagnosticProvider {
+public final class DiagnosticProvider {
     public static List<Diagnostic> getDiagnostics(DocumentState state) {
         List<Diagnostic> diagnostics = new ArrayList<>();
         var errors = state.getErrors();

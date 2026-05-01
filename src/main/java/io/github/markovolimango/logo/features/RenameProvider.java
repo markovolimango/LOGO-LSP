@@ -11,7 +11,7 @@ import org.eclipse.lsp4j.TextEdit;
 import java.util.ArrayList;
 import java.util.List;
 
-public class RenameProvider {
+public final class RenameProvider {
     public static List<TextEdit> getRenameEdits(DocumentState state, Pos pos, String newName) {
         var lexer = new Lexer(state.getLine(pos.line()));
         var token = lexer.getTokenAt(new Pos(0, pos.col()));

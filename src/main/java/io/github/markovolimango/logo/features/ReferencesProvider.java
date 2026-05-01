@@ -10,7 +10,7 @@ import org.eclipse.lsp4j.Location;
 import java.util.ArrayList;
 import java.util.List;
 
-public class ReferencesProvider {
+public final class ReferencesProvider {
     public static List<Location> findReferences(DocumentState state, Pos pos) {
         var linePos = new Pos(0, pos.col());
         var lexer = new Lexer(state.getLine(pos.line()));

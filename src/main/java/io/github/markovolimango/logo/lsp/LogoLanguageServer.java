@@ -50,6 +50,8 @@ public class LogoLanguageServer implements LanguageServer, LanguageClientAware {
         completionOptions.setTriggerCharacters(List.of(":"));
         capabilities.setCompletionProvider(completionOptions);
 
+        capabilities.setHoverProvider(true);
+
         InitializeResult result = new InitializeResult(capabilities);
         return CompletableFuture.completedFuture(result);
     }

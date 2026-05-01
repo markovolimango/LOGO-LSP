@@ -8,7 +8,7 @@ import org.eclipse.lsp4j.FoldingRange;
 import java.util.ArrayList;
 import java.util.List;
 
-public class FoldingRangeProvider {
+public final class FoldingRangeProvider {
     public static List<FoldingRange> findFoldingRanges(DocumentState state) {
         var finder = new FoldingRangeFinder();
         finder.walk(state.getAst());
