@@ -28,6 +28,8 @@ public class LogoLanguageServer implements LanguageServer, LanguageClientAware {
 
         capabilities.setTextDocumentSync(TextDocumentSyncKind.Full);
 
+        capabilities.setFoldingRangeProvider(true);
+
         capabilities.setDiagnosticProvider(new DiagnosticRegistrationOptions(false, false));
 
         capabilities.setDefinitionProvider(true);

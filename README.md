@@ -15,6 +15,7 @@ LSP language server for Logo
   expected but not provided values and more
 - **Completion** - completion suggestions of procedures, local and global variables and built-in keywords, as well as
   `TO` procedure definition syntax (auto inserting `END`)
+- **Folding ranges** - folding ranges for procedures and multi-line lists
 
 ## Build and run
 

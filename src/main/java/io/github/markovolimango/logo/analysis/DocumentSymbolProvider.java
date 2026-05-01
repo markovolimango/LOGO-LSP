@@ -21,7 +21,7 @@ public class DocumentSymbolProvider {
                     LspConverter.toRange(var.getStart(), var.getEnd())
             ));
         for (var scope : state.getSymTable().getGlobalScope().getChildren())
-            res.add(getScopeSymbol(state, scope));
+            res.add(getScopeSymbol(scope));
         res.sort(Comparator.comparing(s -> s.getRange().getStart(), (p1, p2) -> {
             if (p1.getLine() != p2.getLine()) {
                 return Integer.compare(p1.getLine(), p2.getLine());
@@ -31,7 +31,7 @@ public class DocumentSymbolProvider {
         return res;
     }
 
-    public static DocumentSymbol getScopeSymbol(DocumentState state, Scope scope) {
+    public static DocumentSymbol getScopeSymbol(Scope scope) {
         var vars = new ArrayList<DocumentSymbol>();
         for (var var : scope.getLocalVars()) {
             vars.add(new DocumentSymbol(
@@ -42,7 +42,7 @@ public class DocumentSymbolProvider {
             ));
         }
         for (var child : scope.getChildren())
-            vars.add(getScopeSymbol(state, child));
+            vars.add(getScopeSymbol(child));
         var ds = new DocumentSymbol(
                 scope.getName(),
                 SymbolKind.Function,

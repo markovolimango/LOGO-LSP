@@ -20,6 +20,8 @@ to myproc :p
     print :p
 end
 
+myproc 20
+
 to size
     forward :size
 end
@@ -29,5 +31,6 @@ to mare
 end
 
 (draw :size 1 2)
+size
 size
 helper :size

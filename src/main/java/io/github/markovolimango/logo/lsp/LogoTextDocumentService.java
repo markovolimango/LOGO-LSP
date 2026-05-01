@@ -37,6 +37,7 @@ public class LogoTextDocumentService implements TextDocumentService {
     public void didChange(DidChangeTextDocumentParams params) {
         String uri = params.getTextDocument().getUri();
         String text = params.getContentChanges().getFirst().getText();
+        documents.get(uri).setText(text);
 
         ScheduledFuture<?> pending = pendingReparses.get(uri);
         if (pending != null) pending.cancel(true);
@@ -144,5 +145,10 @@ public class LogoTextDocumentService implements TextDocumentService {
                 res.add(Either.forRight(sym));
             return res;
         });
+    }
+
+    @Override
+    public CompletableFuture<List<FoldingRange>> foldingRange(FoldingRangeRequestParams params) {
+        return CompletableFuture.supplyAsync(() -> FoldingRangeProvider.findFoldingRanges(documents.get(params.getTextDocument().getUri())));
     }
 }

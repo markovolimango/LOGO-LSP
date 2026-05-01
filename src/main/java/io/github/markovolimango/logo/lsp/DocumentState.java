@@ -13,11 +13,11 @@ import java.util.List;
 
 public class DocumentState {
     private final String uri;
-    private final String[] lines;
     private final List<Token> tokens;
     private final Node.Program ast;
     private final List<ParseError> errors;
     private final SymbolTable symTable;
+    private String[] lines;
 
     public DocumentState(String uri, String text) {
         this.uri = uri;
@@ -27,6 +27,10 @@ public class DocumentState {
         this.ast = parser.parseProgram();
         this.errors = parser.getErrors();
         this.symTable = new SymbolTableBuilder().build(ast);
+    }
+
+    public void setText(String text) {
+        this.lines = text.split("\n", -1);
     }
 
     public String getUri() {
