@@ -10,13 +10,27 @@ import org.eclipse.lsp4j.Location;
 
 public class DefinitionProvider {
     public static Location findDefinition(DocumentState state, Pos pos) {
-        Token token = new Lexer(state.getLine(pos.line())).getTokenAt(new Pos(0, pos.col()));
+        var linePos = new Pos(0, pos.col());
+        var lexer = new Lexer(state.getLine(pos.line()));
+        var tokens = lexer.getTokens();
+        var i = lexer.getIndexFromPos(linePos);
+        var token = lexer.getTokenAt(linePos);
+
         if (token.text().isBlank()) return null;
-        
+
         var symTable = state.getSymTable();
         Symbol sym = switch (token.type()) {
             case VARREF -> symTable.getVarDef(token.text(), pos);
             case PROC -> symTable.getProcDef(token.text(), pos);
+            case WORD -> {
+                if ((i > 0 &&
+                        (tokens.get(i - 1).type() == Token.Type.MAKE || tokens.get(i - 1).type() == Token.Type.LOCALMAKE))
+                        || (i > 1 && tokens.get(i - 1).type() == Token.Type.NAME))
+                    yield symTable.getVarDef(tokens.get(i).text(), pos);
+                if (i > 0 && tokens.get(i - 1).type() == Token.Type.DEFINE)
+                    yield symTable.getProcDef(tokens.get(i).text(), pos);
+                yield null;
+            }
             default -> null;
         };
         if (sym == null) return null;

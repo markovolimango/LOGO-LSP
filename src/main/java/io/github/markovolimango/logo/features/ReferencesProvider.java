@@ -12,10 +12,11 @@ import java.util.List;
 
 public class ReferencesProvider {
     public static List<Location> findReferences(DocumentState state, Pos pos) {
+        var linePos = new Pos(0, pos.col());
         var lexer = new Lexer(state.getLine(pos.line()));
         var tokens = lexer.getTokens();
-        var i = lexer.getIndexFromPos(pos);
-        var token = lexer.getTokenAt(new Pos(0, pos.col()));
+        var i = lexer.getIndexFromPos(linePos);
+        var token = lexer.getTokenAt(linePos);
 
         if (token.text().isBlank()) return null;
 
@@ -29,10 +30,12 @@ public class ReferencesProvider {
                 yield symTable.getProcRefs(token.text(), pos);
             }
             case WORD -> {
-                if ((i > 0 && (tokens.get(i - 1).type() == Token.Type.MAKE
-                        || tokens.get(i - 1).type() == Token.Type.LOCALMAKE))
+                if ((i > 0 &&
+                        (tokens.get(i - 1).type() == Token.Type.MAKE || tokens.get(i - 1).type() == Token.Type.LOCALMAKE))
                         || (i > 1 && tokens.get(i - 1).type() == Token.Type.NAME))
                     yield symTable.getVarRefs(tokens.get(i).text(), pos);
+                if (i > 0 && tokens.get(i - 1).type() == Token.Type.DEFINE)
+                    yield symTable.getProcRefs(tokens.get(i - 1).text(), pos);
                 yield null;
             }
             default -> null;
