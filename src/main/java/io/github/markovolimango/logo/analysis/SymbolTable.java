@@ -11,6 +11,10 @@ public class SymbolTable {
         this.globalScope = globalScope;
     }
 
+    public Scope getGlobalScope() {
+        return globalScope;
+    }
+
     public Symbol.Proc getProcDef(String name, Pos start) {
         return globalScope.getProcDef(name, start);
     }

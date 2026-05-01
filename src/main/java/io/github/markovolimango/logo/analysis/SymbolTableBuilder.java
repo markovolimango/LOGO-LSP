@@ -15,7 +15,7 @@ public class SymbolTableBuilder extends AstWalker {
         switch (node) {
             case Node.ToStmt n -> {
                 globalScope.addDefinition(new Symbol.Proc(n.name()));
-                scopeStack.push(new Scope(currentScope(), n.start(), n.end()));
+                scopeStack.push(new Scope(currentScope(), n.start(), n.end(), n.name().text()));
                 for (Token param : n.params())
                     currentScope().addDefinition(new Symbol.Var(param));
                 n.body().forEach(this::walk);
@@ -26,7 +26,10 @@ public class SymbolTableBuilder extends AstWalker {
                     Token nameToken = ((Node.Word) n.name()).value();
                     globalScope.addDefinition(new Symbol.Proc(nameToken));
                 }
-                scopeStack.push(new Scope(currentScope(), n.start(), n.end()));
+                var name = "TBD";
+                if (n.name() instanceof Node.Word)
+                    name = ((Node.Word) n.name()).value().text();
+                scopeStack.push(new Scope(currentScope(), n.start(), n.end(), name));
                 for (Node param : n.params()) {
                     if (param instanceof Node.Word) {
                         Token paramToken = ((Node.Word) param).value();
@@ -74,7 +77,7 @@ public class SymbolTableBuilder extends AstWalker {
     }
 
     public SymbolTable build(Node.Program program) {
-        globalScope = new Scope(null, program.start(), program.end());
+        globalScope = new Scope(null, program.start(), program.end(), "<global>");
         scopeStack.push(globalScope);
         walk(program);
         return new SymbolTable(globalScope);

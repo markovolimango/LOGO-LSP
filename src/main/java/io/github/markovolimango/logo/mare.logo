@@ -1,5 +1,5 @@
 to helper :x
-    make "temp :x
+    localmake "temp :x
     forward :temp
 end
 

@@ -12,13 +12,19 @@ public class Scope {
     private final Scope parent;
     private final List<Scope> children = new ArrayList<>();
     private final Pos start, end;
+    private final String name;
 
-    public Scope(Scope parent, Pos start, Pos end) {
+    public Scope(Scope parent, Pos start, Pos end, String name) {
         this.parent = parent;
         if (parent != null)
             parent.children.add(this);
         this.start = start;
         this.end = end;
+        this.name = name;
+    }
+
+    public String getName() {
+        return name;
     }
 
     public void addDefinition(Symbol symbol) {
@@ -43,6 +49,16 @@ public class Scope {
         return (Symbol.Proc) getDef(name, start, Symbol.Proc.class);
     }
 
+    public List<Symbol> getLocalSymbols(Class<? extends Symbol> type) {
+        var res = new ArrayList<Symbol>();
+        symbols.forEach((_, symbols) -> {
+            for (Symbol symbol : symbols)
+                if (symbol.getClass() == type)
+                    res.add(symbol);
+        });
+        return res;
+    }
+
     public List<Symbol> getAllSymbols(Pos start, Class<? extends Symbol> type) {
         var res = parent != null ? parent.getAllSymbols(start, type) : new ArrayList<Symbol>();
         symbols.forEach((_, symbols) -> {
@@ -51,6 +67,10 @@ public class Scope {
                     res.add(symbol);
         });
         return res;
+    }
+
+    public List<Symbol> getLocalVars() {
+        return getLocalSymbols(Symbol.Var.class);
     }
 
     public List<Symbol> getAllVars(Pos start) {

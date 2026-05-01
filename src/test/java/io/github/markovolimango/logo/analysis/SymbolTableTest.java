@@ -81,7 +81,8 @@ class SymbolTableTest {
         SymbolTable table = buildTable(source);
 
         // At the end of p
-        List<String> names = table.getVarNames(new Pos(3, 16));
+        List<String> names = table.getAllVars(new Pos(3, 16))
+                .stream().map(Symbol::getName).toList();
         assertTrue(names.contains("a"));
         assertTrue(names.contains("b"));
         assertTrue(names.contains("c"));
