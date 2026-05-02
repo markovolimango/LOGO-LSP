@@ -1,6 +1,6 @@
 # LOGO-LSP
 
-LSP language server for Logo
+Languange server for the Logo programming language
 
 ## Features
 
@@ -36,6 +36,11 @@ cd LOGO-LSP
 2. Settings → Languages & Frameworks → Language Servers → Add Language server
 3. Command: java -jar /absolute/path/to/LOGO-LSP-9.4.0.jar
 4. File association: *.logo
+
+### Unit tests
+```bash
+./gradlew test
+```
 
 ## Architecture
 
