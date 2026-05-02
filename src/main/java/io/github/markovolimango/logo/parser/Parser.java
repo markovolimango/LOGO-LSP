@@ -90,7 +90,7 @@ public class Parser {
             if (pos == startPos) consume();
         }
         Token endToken = expect(Token.Type.END);
-        return new Node.ToStmt(name, requiredParams, body, toToken.start(), endToken.end());
+        return new Node.ToStmt(name, requiredParams, body, toToken.start(), endToken.end(), optionalParams);
     }
 
     // only called when we know the keyword is correct

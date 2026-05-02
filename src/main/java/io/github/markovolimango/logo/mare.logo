@@ -30,7 +30,7 @@ to mare
   print 42
 end
 
-(draw :size 1 2)
+(draw :size 1 2 3)
 size
 size
 helper :size

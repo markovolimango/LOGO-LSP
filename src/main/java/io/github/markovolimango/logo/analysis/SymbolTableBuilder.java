@@ -17,9 +17,13 @@ public class SymbolTableBuilder extends AstWalker {
                 var sym = new Symbol.Proc(n.name());
                 globalScope.addDefinition(sym);
                 scopeStack.push(new Scope(currentScope(), n.start(), n.end(), n.name().text()));
-                for (Token param : n.params()) {
+                for (Token param : n.requiredParams()) {
                     currentScope().addDefinition(new Symbol.Var(param));
-                    sym.addParam(param.text());
+                    sym.addRequiredParam(param.text());
+                }
+                for (Token param : n.optionalParams()) {
+                    currentScope().addDefinition(new Symbol.Var(param));
+                    sym.addOptionalParam(param.text());
                 }
                 n.body().forEach(this::walk);
                 scopeStack.pop();
@@ -40,12 +44,12 @@ public class SymbolTableBuilder extends AstWalker {
                         Token paramToken = ((Node.Word) param).value();
                         currentScope().addDefinition(new Symbol.Var(paramToken));
                         if (sym != null)
-                            sym.addParam(paramToken.text());
+                            sym.addRequiredParam(paramToken.text());
                     } else if (param instanceof Node.ProcCall) {
                         Token paramToken = ((Node.ProcCall) param).name();
                         currentScope().addDefinition(new Symbol.Var(paramToken));
                         if (sym != null)
-                            sym.addParam(paramToken.text());
+                            sym.addRequiredParam(paramToken.text());
                     } else {
                         super.walk(param);
                     }

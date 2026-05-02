@@ -82,10 +82,12 @@ Each class in features/ takes Lexer/Parser/Analysis types (DocumentClass is just
 lsp4j types.
 
 **Debounced reparse on didChange** -
-Rather than rebuilding DocumentState on every keystroke, didChange schedules a reparse 150ms later.
+Rather than rebuilding DocumentState on every keystroke, didChange schedules a reparse 150 ms later.
 If a new change occurs in that time, the old reparse is canceled.
 
 ## Challenges and Trade-offs
 
 - The LSP doesn't check if user-defined procedures return a value.
   I wish I separated expressions and statements more, but it's too late for that now and this is more than good enough.
+- The documentation and comments aren't the best.
+  I think this was a valid trade-off, as I had 7 days to complete the project and was working by myself.

@@ -25,7 +25,8 @@ public sealed interface Node {
     record VarRef(Token name, Pos start, Pos end) implements Node {
     }
 
-    record ToStmt(Token name, List<Token> params, List<Node> body, Pos start, Pos end) implements Node {
+    record ToStmt(Token name, List<Token> requiredParams, List<Node> body, Pos start, Pos end,
+                  List<Token> optionalParams) implements Node {
     }
 
     record DefineStmt(Node name, List<Node> params, Node body, Pos start, Pos end) implements Node {

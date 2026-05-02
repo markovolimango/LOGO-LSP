@@ -299,8 +299,8 @@ class ParserTest {
     @Test
     void toStmt_paramsAreCaptured() {
         Node.ToStmt stmt = (Node.ToStmt) parseProgram("to square :n repeat 4 [forward :n right 90] end").body().getFirst();
-        assertEquals(1, stmt.params().size());
-        assertEquals("n", stmt.params().getFirst().text());
+        assertEquals(1, stmt.requiredParams().size());
+        assertEquals("n", stmt.requiredParams().getFirst().text());
     }
 
     @Test
@@ -312,13 +312,13 @@ class ParserTest {
     @Test
     void toStmt_noParams_emptyParamList() {
         Node.ToStmt stmt = (Node.ToStmt) parseProgram("to greet print \"hello end").body().getFirst();
-        assertTrue(stmt.params().isEmpty());
+        assertTrue(stmt.requiredParams().isEmpty());
     }
 
     @Test
     void toStmt_multipleParams() {
         Node.ToStmt stmt = (Node.ToStmt) parseProgram("to add :a :b output :a + :b end").body().getFirst();
-        assertEquals(2, stmt.params().size());
+        assertEquals(2, stmt.requiredParams().size());
     }
 
     @Test
